@@ -7,6 +7,7 @@ spring:
     import:
       - optional:file:.env[.properties]
       - optional:file:.env.local[.properties]
+      - optional:classpath:application-secret.yml
   application:
     name: operations-hub
   datasource:

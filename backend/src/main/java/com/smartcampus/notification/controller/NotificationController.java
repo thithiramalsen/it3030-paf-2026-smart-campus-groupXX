@@ -2,6 +2,7 @@ package com.smartcampus.notification.controller;
 
 import com.smartcampus.notification.NotificationService;
 import com.smartcampus.notification.dto.NotificationDto;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/notifications")
-@PreAuthorize("hasAnyRole('USER','ADMIN','TECHNICIAN')")
+@PreAuthorize("hasAnyRole('USER','ADMIN','TECHNICIAN','MANAGER')")
 public class NotificationController {
 
     private final NotificationService notificationService;
@@ -32,6 +33,11 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.getCurrentUserNotifications(pageable));
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<List<NotificationDto>> listMine() {
+        return ResponseEntity.ok(notificationService.getCurrentUserNotificationsList());
+    }
+
     @GetMapping("/unread-count")
     public ResponseEntity<Long> unreadCount() {
         return ResponseEntity.ok(notificationService.unreadCount());
@@ -40,6 +46,12 @@ public class NotificationController {
     @PatchMapping("/{id}/read")
     public ResponseEntity<Void> markRead(@PathVariable UUID id) {
         notificationService.markRead(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/me/read-all")
+    public ResponseEntity<Void> markAllRead() {
+        notificationService.markAllRead();
         return ResponseEntity.noContent().build();
     }
 

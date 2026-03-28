@@ -3,4 +3,5 @@ backend/.env
 backend/.env.local
 backend/.env.*
 !backend/.env.local.example
+backend/src/main/resources/application-secret.yml
 frontend src example (do not commit)

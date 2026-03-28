@@ -11,6 +11,19 @@
 ## Configuration
 Edit or override values in `backend/src/main/resources/application.yml` or via environment variables.
 
+For local development, you can also use:
+- `backend/src/main/resources/application-dev.yml` for non-secret dev overrides.
+- `backend/src/main/resources/application-secret.yml` for local secrets (this file is gitignored).
+- `backend/src/main/resources/application-secret.yml.example` as the template.
+
+PowerShell (local dev profile):
+
+```powershell
+$env:SPRING_PROFILES_ACTIVE = "dev"
+cd backend
+mvn spring-boot:run
+```
+
 Important env vars (examples shown for PowerShell):
 
 ```powershell

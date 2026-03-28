@@ -52,7 +52,7 @@ class NotificationControllerTest {
     @Test
     @WithMockUser(roles = "USER")
     void listShouldReturnOkForUser() throws Exception {
-        Page<NotificationDto> page = new PageImpl<>(List.of(new NotificationDto(UUID.randomUUID(), "msg", NotificationType.BOOKING_APPROVED, null, false, java.time.Instant.now())));
+        Page<NotificationDto> page = new PageImpl<>(List.of(new NotificationDto(UUID.randomUUID(), "Booking Approved", "msg", NotificationType.BOOKING_APPROVED, null, false, java.time.Instant.now())));
         when(notificationService.getCurrentUserNotifications(any(PageRequest.class))).thenReturn(page);
 
         mockMvc.perform(get("/api/notifications"))
