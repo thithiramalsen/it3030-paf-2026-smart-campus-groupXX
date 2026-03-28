@@ -1,1 +1,5 @@
 backend/target/
+backend/.env
+backend/.env.local
+backend/.env.*
+!backend/.env.local.example
