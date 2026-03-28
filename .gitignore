@@ -3,3 +3,4 @@ backend/.env
 backend/.env.local
 backend/.env.*
 !backend/.env.local.example
+frontend src example (do not commit)
