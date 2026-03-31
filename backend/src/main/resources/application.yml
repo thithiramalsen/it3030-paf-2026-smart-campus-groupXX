@@ -45,6 +45,10 @@ jwt:
   access-token-validity-seconds: 900
   refresh-token-validity-seconds: 1209600
 
+app:
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  bootstrap-admin-email: ${BOOTSTRAP_ADMIN_EMAIL:path2intern@gmail.com}
+
 logging:
   level:
     root: INFO

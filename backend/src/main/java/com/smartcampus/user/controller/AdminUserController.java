@@ -1,12 +1,10 @@
 package com.smartcampus.user.controller;
 
-import com.smartcampus.user.User;
-import com.smartcampus.user.UserRepository;
 import com.smartcampus.user.dto.UpdateUserRoleRequest;
 import com.smartcampus.user.dto.UpdateUserStatusRequest;
 import com.smartcampus.user.dto.UserViewDto;
+import com.smartcampus.user.service.AdminUserService;
 import jakarta.validation.Valid;
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
@@ -24,47 +22,32 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminUserController {
 
-    private final UserRepository userRepository;
+    private final AdminUserService adminUserService;
 
-    public AdminUserController(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public AdminUserController(AdminUserService adminUserService) {
+        this.adminUserService = adminUserService;
     }
 
     @GetMapping
     public ResponseEntity<List<UserViewDto>> listUsers() {
-        List<UserViewDto> users = userRepository.findAll().stream()
-                .sorted(Comparator.comparing(User::getCreatedAt).reversed())
-                .map(UserViewDto::from)
-                .toList();
-        return ResponseEntity.ok(users);
+        return ResponseEntity.ok(adminUserService.listUsers());
     }
 
     @PatchMapping("/{id}/role")
     public ResponseEntity<UserViewDto> updateRole(@PathVariable UUID id,
                                                   @Valid @RequestBody UpdateUserRoleRequest request) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + id));
-        user.setRole(request.getRole());
-        User saved = userRepository.save(user);
-        return ResponseEntity.ok(UserViewDto.from(saved));
+        return ResponseEntity.ok(adminUserService.updateRole(id, request));
     }
 
     @PatchMapping("/{id}/status")
     public ResponseEntity<UserViewDto> updateStatus(@PathVariable UUID id,
                                                     @Valid @RequestBody UpdateUserStatusRequest request) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + id));
-        user.setAccountStatus(request.getAccountStatus());
-        User saved = userRepository.save(user);
-        return ResponseEntity.ok(UserViewDto.from(saved));
+        return ResponseEntity.ok(adminUserService.updateStatus(id, request));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
-        if (!userRepository.existsById(id)) {
-            throw new IllegalArgumentException("User not found: " + id);
-        }
-        userRepository.deleteById(id);
+        adminUserService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
 }

@@ -1,16 +1,16 @@
-import httpClient from './httpClient';
+import apiClient from '../utils/apiClient';
 
 export const adminApi = {
   getUsers() {
-    return httpClient.get('/api/admin/users');
+    return apiClient.get('/api/admin/users');
   },
   setUserRole(userId, role) {
-    return httpClient.patch(`/api/admin/users/${userId}/role`, { role });
+    return apiClient.patch(`/api/admin/users/${userId}/role`, { role });
   },
   setUserStatus(userId, accountStatus) {
-    return httpClient.patch(`/api/admin/users/${userId}/status`, { accountStatus });
+    return apiClient.patch(`/api/admin/users/${userId}/status`, { accountStatus });
   },
   removeUser(userId) {
-    return httpClient.delete(`/api/admin/users/${userId}`);
+    return apiClient.delete(`/api/admin/users/${userId}`);
   },
 };

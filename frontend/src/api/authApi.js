@@ -1,10 +1,10 @@
-import httpClient from './httpClient';
+import apiClient from '../utils/apiClient';
 
 export const authApi = {
   getCurrentUser() {
-    return httpClient.get('/api/auth/me');
+    return apiClient.get('/api/auth/me');
   },
   logout() {
-    return httpClient.post('/api/auth/logout');
+    return apiClient.post('/api/auth/logout');
   },
 };

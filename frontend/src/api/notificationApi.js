@@ -1,19 +1,19 @@
-import httpClient from './httpClient';
+import apiClient from '../utils/apiClient';
 
 export const notificationApi = {
   listMine() {
-    return httpClient.get('/api/notifications/me');
+    return apiClient.get('/api/notifications/me');
   },
   unreadCount() {
-    return httpClient.get('/api/notifications/unread-count');
+    return apiClient.get('/api/notifications/unread-count');
   },
   markRead(notificationId) {
-    return httpClient.patch(`/api/notifications/${notificationId}/read`);
+    return apiClient.patch(`/api/notifications/${notificationId}/read`);
   },
   markAllRead() {
-    return httpClient.patch('/api/notifications/me/read-all');
+    return apiClient.patch('/api/notifications/me/read-all');
   },
   remove(notificationId) {
-    return httpClient.delete(`/api/notifications/${notificationId}`);
+    return apiClient.delete(`/api/notifications/${notificationId}`);
   },
 };

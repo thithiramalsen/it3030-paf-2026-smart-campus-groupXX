@@ -12,6 +12,7 @@ import TechnicianDashboard from '../pages/TechnicianDashboard';
 import ManagerDashboard from '../pages/ManagerDashboard';
 import AdminDashboard from '../pages/AdminDashboard';
 import AdminUsersPage from '../pages/AdminUsersPage';
+import OAuthCallbackPage from '../pages/OAuthCallbackPage';
 
 function inShell(element) {
   return (
@@ -27,6 +28,7 @@ export default function AppRoutes() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
           <Route path="/" element={inShell(<HomePage />)} />
           <Route path="/profile" element={inShell(<ProfilePage />)} />
           <Route path="/notifications" element={inShell(<NotificationsPage />)} />

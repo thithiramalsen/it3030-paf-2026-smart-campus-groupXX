@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { authApi } from '../../api/authApi';
+import { clearTokens } from '../../auth/tokenStore';
 
 const AuthContext = createContext(null);
 
@@ -37,6 +38,7 @@ export function AuthProvider({ children }) {
     } catch {
       // Ignore backend logout errors and clear local state.
     }
+    clearTokens();
     setUser(null);
   };
 
