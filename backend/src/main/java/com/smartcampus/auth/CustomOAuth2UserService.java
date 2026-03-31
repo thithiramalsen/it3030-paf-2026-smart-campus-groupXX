@@ -1,8 +1,6 @@
 package com.smartcampus.auth;
 
-import com.smartcampus.user.Role;
-import com.smartcampus.user.User;
-import com.smartcampus.user.UserRepository;
+import com.smartcampus.auth.service.AuthService;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,10 +16,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private static final Logger log = LoggerFactory.getLogger(CustomOAuth2UserService.class);
 
-    private final UserRepository userRepository;
+    private final AuthService authService;
 
-    public CustomOAuth2UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public CustomOAuth2UserService(AuthService authService) {
+        this.authService = authService;
     }
 
     @Override
@@ -31,15 +29,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         Map<String, Object> attributes = oAuth2User.getAttributes();
         String email = (String) attributes.get("email");
         String name = (String) attributes.getOrDefault("name", attributes.getOrDefault("given_name", "Unknown"));
+        String picture = (String) attributes.get("picture");
 
-        if (email == null) {
-            throw new IllegalStateException("Email not provided by OAuth2 provider");
-        }
-
-        userRepository.findByEmail(email).orElseGet(() -> {
-            log.info("Creating user {} from OAuth2 login", email);
-            return userRepository.save(new User(name, email, Role.USER));
-        });
+        authService.ensureOAuthUser(email, name, picture);
+        log.debug("OAuth2 user synchronized for {}", email);
 
         return new DefaultOAuth2User(
                 oAuth2User.getAuthorities(),

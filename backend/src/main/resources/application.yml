@@ -2,12 +2,20 @@ server:
   port: 8080
 
 spring:
+  config:
+    # Load local env-style property files for developer machines.
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:.env.local[.properties]
+      - optional:classpath:application-secret.yml
   application:
     name: operations-hub
   datasource:
-    url: jdbc:postgresql://localhost:5432/smart_campus
-    username: ${DB_USERNAME:smartcampus}
-    password: ${DB_PASSWORD:smartcampus}
+    # Prefer the standard Spring env var `SPRING_DATASOURCE_URL` if set.
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/smart_campus}
+    # Allow either SPRING_DATASOURCE_USERNAME/PASSWORD or the older DB_USERNAME/DB_PASSWORD
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USERNAME:smartcampus}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:smartcampus}}
   jpa:
     hibernate:
       ddl-auto: update
@@ -36,6 +44,10 @@ jwt:
   secret: ${JWT_SECRET:change-me}
   access-token-validity-seconds: 900
   refresh-token-validity-seconds: 1209600
+
+app:
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  bootstrap-admin-email: ${BOOTSTRAP_ADMIN_EMAIL:path2intern@gmail.com}
 
 logging:
   level:
