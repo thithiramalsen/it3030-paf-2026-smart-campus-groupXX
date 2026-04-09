@@ -18,11 +18,46 @@ export default function ManagerDashboard() {
   );
 }
 */
+
+/*resource list
 import { useState } from 'react';
 import ResourceManagement from '../pages/ResourceManagement';
 
 export default function ManagerDashboard() {
   const [tab, setTab] = useState('overview');
+
+  return (
+    <div className="page-block">
+      <h1>Manager Dashboard</h1>
+      <div className="inline-actions tabs">
+        <button className={tab === 'overview'   ? 'tab active' : 'tab'} onClick={() => setTab('overview')}>Overview</button>
+        <button className={tab === 'tickets'    ? 'tab active' : 'tab'} onClick={() => setTab('tickets')}>Tickets</button>
+        <button className={tab === 'resources'  ? 'tab active' : 'tab'} onClick={() => setTab('resources')}>Resources</button>
+        <button className={tab === 'analytics'  ? 'tab active' : 'tab'} onClick={() => setTab('analytics')}>Analytics</button>
+      </div>
+
+      {tab === 'overview'  && <article className="card">Manager module selected: overview.</article>}
+      {tab === 'tickets'   && <article className="card">Manager module selected: tickets.</article>}
+      {tab === 'resources' && <ResourceManagement />}
+      {tab === 'analytics' && <article className="card">Manager module selected: analytics.</article>}
+    </div>
+  );
+}
+  */
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import ResourceManagement from '../pages/ResourceManagement';
+
+export default function ManagerDashboard() {
+  const [tab, setTab] = useState('overview');
+  const location = useLocation();
+
+  // When navigating back from Add/Edit pages, auto-select the resources tab
+  useEffect(() => {
+    if (location.state?.tab) {
+      setTab(location.state.tab);
+    }
+  }, [location.state]);
 
   return (
     <div className="page-block">

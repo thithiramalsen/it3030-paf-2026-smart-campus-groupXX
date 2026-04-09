@@ -14,6 +14,8 @@ import AdminDashboard from '../pages/AdminDashboard';
 import AdminUsersPage from '../pages/AdminUsersPage';
 import OAuthCallbackPage from '../pages/OAuthCallbackPage';
 
+import AddResource from '../pages/AddResource';
+
 function inShell(element) {
   return (
     <ProtectedRoute>
@@ -65,6 +67,8 @@ export default function AppRoutes() {
               </RoleGuard>
             }
           />
+
+          <Route path="/manager/resources/add" element={<AddResource />} />
 
          
           <Route

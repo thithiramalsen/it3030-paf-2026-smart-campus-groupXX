@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAllResources, searchResources } from '../api/resourceApi';
+import { searchResources } from '../api/resourceApi';
 import ResourceTable from '../components/ResourceTable';
 
 export default function ResourceManagement() {
     const navigate = useNavigate();
 
-    const [resources, setResources]   = useState([]);
-    const [loading, setLoading]       = useState(true);
-    const [error, setError]           = useState(null);
+    const [resources, setResources] = useState([]);
+    const [loading, setLoading]     = useState(true);
+    const [error, setError]         = useState(null);
 
     // Filter state
     const [search,   setSearch]   = useState('');
@@ -16,14 +16,11 @@ export default function ResourceManagement() {
     const [status,   setStatus]   = useState('');
     const [location, setLocation] = useState('');
 
-    const fetchResources = async () => {
+    const fetchResources = async (filters = {}) => {
         setLoading(true);
         setError(null);
         try {
-            const hasFilters = search || type || status || location;
-            const data = hasFilters
-                ? await searchResources({ search, type, status, location })
-                : await getAllResources();
+            const data = await searchResources(filters);
             setResources(data);
         } catch (err) {
             setError('Failed to load resources. Please try again.');
@@ -32,12 +29,22 @@ export default function ResourceManagement() {
         }
     };
 
-    // Fetch on mount
-    useEffect(() => { fetchResources(); }, []);
-
-    // Fetch when filters change (debounced for search)
+    // Fetch on mount — no filters
     useEffect(() => {
-        const timer = setTimeout(() => { fetchResources(); }, 400);
+        fetchResources({});
+    }, []);
+
+    // Fetch when filters change (debounced)
+    useEffect(() => {
+        const filters = {};
+        if (search)   filters.search   = search;
+        if (type)     filters.type     = type;
+        if (status)   filters.status   = status;
+        if (location) filters.location = location;
+
+        const timer = setTimeout(() => {
+            fetchResources(filters);
+        }, 400);
         return () => clearTimeout(timer);
     }, [search, type, status, location]);
 
@@ -113,7 +120,7 @@ export default function ResourceManagement() {
                     </div>
                 ) : (
                     <>
-                        <ResourceTable resources={resources} onRefresh={fetchResources} />
+                        <ResourceTable resources={resources} onRefresh={() => fetchResources({})} />
                         <div style={{ padding: '10px 14px', fontSize: 12, color: '#aaa', borderTop: '0.5px solid #f0f0f0' }}>
                             Showing {resources.length} resource{resources.length !== 1 ? 's' : ''}
                         </div>
