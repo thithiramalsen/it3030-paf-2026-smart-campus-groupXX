@@ -13,13 +13,9 @@ import java.util.List;
 
 @Service
 public class SlotSuggestionService {
-    
 
     private final BookingRepository bookingRepository;
 
-
-
-    // Facility open hours
     private static final LocalTime DAY_START = LocalTime.of(8, 0);
     private static final LocalTime DAY_END = LocalTime.of(20, 0);
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
@@ -29,8 +25,6 @@ public class SlotSuggestionService {
         this.bookingRepository = bookingRepository;
     }
 
-    // Returns up to 3 available slots starting from the given date
-    // Searches forward up to 7 days if current day is fully booked
     public List<SlotSuggestionDto> suggestSlots(String resourceId, LocalDate fromDate, int durationMinutes) {
 
         List<SlotSuggestionDto> suggestions = new ArrayList<>();
@@ -46,41 +40,49 @@ public class SlotSuggestionService {
         return suggestions.subList(0, Math.min(3, suggestions.size()));
     }
 
-    // Finds free gaps on a single day that fit the requested duration
     private List<SlotSuggestionDto> findSlotsOnDay(String resourceId, LocalDate date, int durationMinutes) {
 
-        // Get all approved bookings on this day sorted by start time
         List<Booking> existing = bookingRepository
             .findApprovedBookingsByResourceAndDate(resourceId, date);
+
+        // Calculate busy level based on number of bookings on this day
+        int bookingCount = existing.size();
+        String busyLevel;
+        if (bookingCount <= 1) {
+            busyLevel = "QUIET";
+        } else if (bookingCount <= 3) {
+            busyLevel = "MODERATE";
+        } else {
+            busyLevel = "PEAK";
+        }
 
         List<SlotSuggestionDto> available = new ArrayList<>();
         LocalTime cursor = DAY_START;
 
         for (Booking booked : existing) {
-            // Is there a gap before this booking starts?
             if (cursor.plusMinutes(durationMinutes).compareTo(booked.getStartTime()) <= 0) {
-                available.add(buildSuggestion(date, cursor, cursor.plusMinutes(durationMinutes)));
+                available.add(buildSuggestion(date, cursor, cursor.plusMinutes(durationMinutes), bookingCount, busyLevel));
                 if (available.size() >= 3) return available;
             }
-            // Move cursor to end of this booking
             if (booked.getEndTime().isAfter(cursor)) {
                 cursor = booked.getEndTime();
             }
         }
 
-        // Check remaining time after last booking
         if (cursor.plusMinutes(durationMinutes).compareTo(DAY_END) <= 0) {
-            available.add(buildSuggestion(date, cursor, cursor.plusMinutes(durationMinutes)));
+            available.add(buildSuggestion(date, cursor, cursor.plusMinutes(durationMinutes), bookingCount, busyLevel));
         }
 
         return available;
     }
 
-    private SlotSuggestionDto buildSuggestion(LocalDate date, LocalTime start, LocalTime end) {
+    private SlotSuggestionDto buildSuggestion(LocalDate date, LocalTime start, LocalTime end, int bookingCount, String busyLevel) {
         SlotSuggestionDto dto = new SlotSuggestionDto();
         dto.setDate(date);
         dto.setSuggestedStart(start);
         dto.setSuggestedEnd(end);
+        dto.setTotalBookingsOnDay(bookingCount);
+        dto.setBusyLevel(busyLevel);
         dto.setMessage(String.format("Available on %s, %s – %s",
             date.format(DATE_FMT),
             start.format(TIME_FMT),
