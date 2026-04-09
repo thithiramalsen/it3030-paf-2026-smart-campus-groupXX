@@ -17,6 +17,7 @@ import BookingForm from '../features/booking/BookingForm';
 import MyBookings from '../features/booking/MyBookings';
 import AdminBookings from '../features/booking/AdminBookings';
 import BookingCalendar from '../features/booking/BookingCalendar';
+import ResourceHeatmap from '../features/booking/ResourceHeatmap';
 
 function inShell(element) {
   return (
@@ -37,6 +38,7 @@ export default function AppRoutes() {
           <Route path="/profile" element={inShell(<ProfilePage />)} />
           <Route path="/notifications" element={inShell(<NotificationsPage />)} />
           <Route path="/bookings/calendar" element={inShell(<BookingCalendar />)} />
+          <Route path="/bookings/heatmap" element={inShell(<ResourceHeatmap />)} />
 
           <Route path="/bookings/new" element={inShell(<BookingForm />)} />
           <Route path="/bookings/my" element={inShell(<MyBookings />)} />

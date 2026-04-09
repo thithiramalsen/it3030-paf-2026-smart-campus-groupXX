@@ -84,8 +84,14 @@ export default function BookingForm({ onSuccess }) {
 
   return (
     <div style={{ maxWidth: 560, margin: '0 auto', padding: 24 }}>
-      <h2>Request a Booking</h2>
-
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <h2 style={{ margin: 0 }}>Request a Booking</h2>
+        <button type="button" onClick={() => window.location.href = '/bookings/heatmap'} style={{
+          padding: '6px 12px', background: '#fff', color: '#6b7280',
+          border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontSize: 13
+        }}>📊 View Heatmap</button>
+      </div>
+      
       <form onSubmit={handleSubmit}>
         <div style={{ marginBottom: 12 }}>
           <label>Resource ID</label>
