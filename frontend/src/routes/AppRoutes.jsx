@@ -16,6 +16,7 @@ import OAuthCallbackPage from '../pages/OAuthCallbackPage';
 import BookingForm from '../features/booking/BookingForm';
 import MyBookings from '../features/booking/MyBookings';
 import AdminBookings from '../features/booking/AdminBookings';
+import BookingCalendar from '../features/booking/BookingCalendar';
 
 function inShell(element) {
   return (
@@ -35,6 +36,7 @@ export default function AppRoutes() {
           <Route path="/" element={inShell(<HomePage />)} />
           <Route path="/profile" element={inShell(<ProfilePage />)} />
           <Route path="/notifications" element={inShell(<NotificationsPage />)} />
+          <Route path="/bookings/calendar" element={inShell(<BookingCalendar />)} />
 
           <Route path="/bookings/new" element={inShell(<BookingForm />)} />
           <Route path="/bookings/my" element={inShell(<MyBookings />)} />
