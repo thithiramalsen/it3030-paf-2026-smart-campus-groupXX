@@ -70,9 +70,13 @@ export default function BookingCalendar() {
 
   return (
     <div style={{ maxWidth: 700, margin: '0 auto', padding: 24 }}>
+      <button onClick={() => navigate('/bookings/my')} style={{
+        marginBottom: 16, padding: '6px 12px', background: '#fff',
+        border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontSize: 13
+      }}>← Back to My Bookings</button>
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <h2 style={{ margin: 0 }}>My Booking Calendar</h2>
-        <button onClick={() => navigate('/bookings/new')} style={{
+        <h2 style={{ margin: 0 }}>My Booking Calendar</h2>        <button onClick={() => navigate('/bookings/new')} style={{
           padding: '8px 16px', background: '#2563eb', color: '#fff',
           border: 'none', borderRadius: 8, cursor: 'pointer'
         }}>+ New Booking</button>

@@ -12,7 +12,13 @@ export default function Sidebar() {
   const common = [item('/', 'Home'), item('/profile', 'Profile'), item('/notifications', 'Notifications')];
   const roleSpecific = [];
 
-  if (user?.role === 'USER') roleSpecific.push(item('/dashboard', 'User Dashboard'));
+  if (user?.role === 'USER') {
+    roleSpecific.push(item('/dashboard', 'User Dashboard'));
+    roleSpecific.push(item('/bookings/my', 'My Bookings'));
+    roleSpecific.push(item('/bookings/new', 'New Booking'));
+    roleSpecific.push(item('/bookings/calendar', 'Booking Calendar'));
+    roleSpecific.push(item('/bookings/heatmap', 'Availability Heatmap'));
+  }
   if (user?.role === 'TECHNICIAN' || user?.role === 'MANAGER' || user?.role === 'ADMIN') {
     roleSpecific.push(item('/technician/dashboard', 'Technician Dashboard'));
   }
@@ -22,6 +28,7 @@ export default function Sidebar() {
   if (user?.role === 'ADMIN') {
     roleSpecific.push(item('/admin', 'Admin Dashboard'));
     roleSpecific.push(item('/admin/users', 'Users Admin'));
+    roleSpecific.push(item('/admin/bookings', 'Booking Admin'));
   }
 
   const items = [...common, ...roleSpecific];
