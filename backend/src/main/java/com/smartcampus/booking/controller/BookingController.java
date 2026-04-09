@@ -10,6 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import com.smartcampus.booking.service.SlotSuggestionService;
+import com.smartcampus.booking.dto.SlotSuggestionDto;
+import java.time.LocalDate;
 
 import java.util.List;
 
@@ -17,12 +20,14 @@ import java.util.List;
 @RequestMapping("/api/bookings")
 public class BookingController {
 
-    private final BookingService bookingService;
+       private final BookingService bookingService;
+    private final SlotSuggestionService slotSuggestionService;
 
-    public BookingController(BookingService bookingService) {
+    public BookingController(BookingService bookingService,
+                             SlotSuggestionService slotSuggestionService) {
         this.bookingService = bookingService;
+        this.slotSuggestionService = slotSuggestionService;
     }
-
     // POST /api/bookings
     // Any logged in user can request a booking
     @PostMapping
@@ -87,5 +92,18 @@ public class BookingController {
             @PathVariable String id,
             @RequestBody(required = false) BookingActionDto dto) {
         return ResponseEntity.ok(bookingService.cancelBooking(id, dto));
+    }
+
+    // GET /api/bookings/suggest-slots?resourceId=&date=&durationMinutes=
+    // Returns 3 next available time slots for a resource
+    @GetMapping("/suggest-slots")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<SlotSuggestionDto>> suggestSlots(
+            @RequestParam String resourceId,
+            @RequestParam LocalDate date,
+            @RequestParam(defaultValue = "60") int durationMinutes) {
+        return ResponseEntity.ok(
+            slotSuggestionService.suggestSlots(resourceId, date, durationMinutes)
+        );
     }
 }
