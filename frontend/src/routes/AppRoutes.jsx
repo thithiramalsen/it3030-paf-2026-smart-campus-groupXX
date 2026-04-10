@@ -16,6 +16,7 @@ import OAuthCallbackPage from '../pages/OAuthCallbackPage';
 
 import AddResource from '../pages/AddResource';
 import EditResource from '../pages/EditResource';
+import ResourceDetails from '../pages/ResourceDetails';
 
 function inShell(element) {
   return (
@@ -71,6 +72,7 @@ export default function AppRoutes() {
 
           <Route path="/manager/resources/add" element={<AddResource />} />
           <Route path="/manager/resources/edit/:id" element={<EditResource />} />
+          <Route path="/manager/resources/:id" element={<ResourceDetails />} />
 
          
           <Route
