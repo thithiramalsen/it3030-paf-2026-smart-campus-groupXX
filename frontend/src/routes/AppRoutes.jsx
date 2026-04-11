@@ -18,6 +18,11 @@ import MyBookings from '../features/booking/MyBookings';
 import AdminBookings from '../features/booking/AdminBookings';
 import BookingCalendar from '../features/booking/BookingCalendar';
 import ResourceHeatmap from '../features/booking/ResourceHeatmap';
+import MyTicket from '../features/tickets/MyTicket';
+import NewTicket from '../features/tickets/NewTicket';
+import AdminTickets from '../features/tickets/AdminTickets';
+import AdminReplyTickets from '../features/tickets/AdminReplyTickets';
+
 
 function inShell(element) {
   return (
@@ -42,6 +47,8 @@ export default function AppRoutes() {
 
           <Route path="/bookings/new" element={inShell(<BookingForm />)} />
           <Route path="/bookings/my" element={inShell(<MyBookings />)} />
+          <Route path="/tickets/new" element={inShell(<NewTicket />)} />
+          <Route path="/tickets/my" element={inShell(<MyTicket />)} />
           <Route
             path="/admin/bookings"
             element={

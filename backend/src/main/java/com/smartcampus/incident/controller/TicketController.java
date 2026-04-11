@@ -1,9 +1,12 @@
 package com.smartcampus.incident.controller;
 
-import com.smartcampus.incident.entity.Ticket;
+import com.smartcampus.incident.dto.*;
 import com.smartcampus.incident.entity.TicketStatus;
 import com.smartcampus.incident.service.TicketService;
 
+import jakarta.validation.Valid;
+import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,43 +22,64 @@ public class TicketController {
         this.ticketService = ticketService;
     }
 
+    // ✅ CREATE TICKET
     @PostMapping
-    public Ticket createTicket(@RequestBody Ticket ticket) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<TicketResponseDto> createTicket(
+            @Valid @RequestBody TicketRequestDto dto) {
 
-        return ticketService.createTicket(ticket);
-
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ticketService.createTicket(dto));
     }
 
+    // ✅ GET ALL (ADMIN)
     @GetMapping
-    public List<Ticket> getAllTickets() {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<TicketResponseDto>> getAllTickets(
+            @RequestParam(required = false) TicketStatus status) {
 
-        return ticketService.getAllTickets();
-
+        return ResponseEntity.ok(ticketService.getAllTickets(status));
     }
 
+    // ✅ GET MY TICKETS
+    @GetMapping("/my")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<TicketResponseDto>> getMyTickets() {
+        return ResponseEntity.ok(ticketService.getMyTickets());
+    }
+
+    // ✅ GET ONE
+    @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<TicketResponseDto> getTicket(@PathVariable Long id) {
+        return ResponseEntity.ok(ticketService.getTicket(id));
+    }
+
+    // ✅ UPDATE STATUS + RESOLUTION
     @PutMapping("/{id}/status")
-    public Ticket updateStatus(
+    @PreAuthorize("hasAnyRole('ADMIN','TECHNICIAN')")
+    public ResponseEntity<TicketResponseDto> updateStatus(
             @PathVariable Long id,
-            @RequestParam TicketStatus status) {
+            @Valid @RequestBody TicketUpdateDto dto) {
 
-        return ticketService.updateStatus(id, status);
-
+        return ResponseEntity.ok(
+                ticketService.updateStatus(
+                        id,
+                        TicketStatus.valueOf(dto.getStatus()),
+                        dto.getResolutionNotes()
+                )
+        );
     }
 
+    // ✅ ASSIGN TECHNICIAN
     @PutMapping("/{id}/assign")
-    public Ticket assignTechnician(
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<TicketResponseDto> assignTechnician(
             @PathVariable Long id,
-            @RequestParam String technician) {
+            @RequestBody String technician) {
 
-        return ticketService.assignTechnician(id, technician);
-    }
-
-    @PutMapping("/{id}/update")
-    public Ticket updateTicket(
-            @PathVariable Long id,
-            @RequestParam TicketStatus status,
-            @RequestParam String resolution) {
-
-        return ticketService.updateTicket(id, status, resolution);
+        return ResponseEntity.ok(
+                ticketService.assignTechnician(id, technician)
+        );
     }
 }

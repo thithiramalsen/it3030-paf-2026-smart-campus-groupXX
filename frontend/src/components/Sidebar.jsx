@@ -18,6 +18,9 @@ export default function Sidebar() {
     roleSpecific.push(item('/bookings/new', 'New Booking'));
     roleSpecific.push(item('/bookings/calendar', 'Booking Calendar'));
     roleSpecific.push(item('/bookings/heatmap', 'Availability Heatmap'));
+    roleSpecific.push(item('/tickets/my', 'My Tickets'));
+    roleSpecific.push(item('/tickets/new', 'New Tickets'));
+
   }
   if (user?.role === 'TECHNICIAN' || user?.role === 'MANAGER' || user?.role === 'ADMIN') {
     roleSpecific.push(item('/technician/dashboard', 'Technician Dashboard'));
