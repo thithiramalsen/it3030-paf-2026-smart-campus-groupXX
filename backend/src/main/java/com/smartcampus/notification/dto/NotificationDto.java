@@ -1,26 +1,29 @@
 package com.smartcampus.notification.dto;
 
 import com.smartcampus.notification.NotificationType;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.util.UUID;
 
 public class NotificationDto {
     private UUID id;
+    private String title;
     private String message;
     private NotificationType type;
     private UUID relatedEntityId;
-    private boolean read;
+    private boolean isRead;
     private Instant createdAt;
 
     public NotificationDto() {
     }
 
-    public NotificationDto(UUID id, String message, NotificationType type, UUID relatedEntityId, boolean read, Instant createdAt) {
+    public NotificationDto(UUID id, String title, String message, NotificationType type, UUID relatedEntityId, boolean isRead, Instant createdAt) {
         this.id = id;
+        this.title = title;
         this.message = message;
         this.type = type;
         this.relatedEntityId = relatedEntityId;
-        this.read = read;
+        this.isRead = isRead;
         this.createdAt = createdAt;
     }
 
@@ -32,6 +35,10 @@ public class NotificationDto {
         return message;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
     public NotificationType getType() {
         return type;
     }
@@ -40,8 +47,9 @@ public class NotificationDto {
         return relatedEntityId;
     }
 
+    @JsonProperty("isRead")
     public boolean isRead() {
-        return read;
+        return isRead;
     }
 
     public Instant getCreatedAt() {

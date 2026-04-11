@@ -1,6 +1,7 @@
 package com.smartcampus.notification;
 
 import com.smartcampus.user.User;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +14,8 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
 
     Page<Notification> findByRecipientAndDeletedFalse(User recipient, Pageable pageable);
 
+    List<Notification> findByRecipientAndDeletedFalseOrderByCreatedAtDesc(User recipient);
+
     long countByRecipientAndIsReadFalseAndDeletedFalse(User recipient);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
@@ -22,4 +25,8 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update Notification n set n.deleted = true where n.id = :id and n.recipient = :recipient")
     int softDelete(@Param("id") UUID id, @Param("recipient") User recipient);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("update Notification n set n.isRead = true where n.recipient = :recipient and n.deleted = false")
+    int markAllRead(@Param("recipient") User recipient);
 }

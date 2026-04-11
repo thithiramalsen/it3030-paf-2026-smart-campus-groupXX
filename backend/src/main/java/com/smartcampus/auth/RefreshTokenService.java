@@ -42,6 +42,11 @@ public class RefreshTokenService {
         refreshToken.revoke();
     }
 
+    @Transactional
+    public void revokeAllForUser(User user) {
+        refreshTokenRepository.revokeAllForUser(user);
+    }
+
     @Transactional(readOnly = true)
     public long getAccessTokenTtlSeconds() {
         return jwtProperties.getAccessTokenValiditySeconds();

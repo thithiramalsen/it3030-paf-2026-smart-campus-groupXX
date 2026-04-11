@@ -25,12 +25,22 @@ public class User {
     @Column(nullable = false)
     private String name;
 
+    @Column(length = 512)
+    private String profileImageUrl;
+
+    @Column(length = 50)
+    private String userType;
+
     @Column(nullable = false, unique = true)
     private String email;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Role role;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private AccountStatus accountStatus = AccountStatus.ACTIVE;
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
@@ -42,6 +52,7 @@ public class User {
         this.name = name;
         this.email = email;
         this.role = role;
+        this.accountStatus = AccountStatus.ACTIVE;
     }
 
     public UUID getId() {
@@ -68,12 +79,36 @@ public class User {
         this.email = email;
     }
 
+    public String getProfileImageUrl() {
+        return profileImageUrl;
+    }
+
+    public void setProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
+
+    public String getUserType() {
+        return userType;
+    }
+
+    public void setUserType(String userType) {
+        this.userType = userType;
+    }
+
     public Role getRole() {
         return role;
     }
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public AccountStatus getAccountStatus() {
+        return accountStatus;
+    }
+
+    public void setAccountStatus(AccountStatus accountStatus) {
+        this.accountStatus = accountStatus;
     }
 
     public Instant getCreatedAt() {

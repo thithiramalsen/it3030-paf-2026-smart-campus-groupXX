@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/smart_campus
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USERNAME:smartcampus}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:smartcampus}}
+  jpa:
+    show-sql: true
+
+logging:
+  level:
+    root: INFO
+    com.smartcampus: DEBUG

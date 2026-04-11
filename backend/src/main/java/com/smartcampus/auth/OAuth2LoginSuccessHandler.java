@@ -1,14 +1,16 @@
 package com.smartcampus.auth;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smartcampus.auth.dto.TokenResponse;
+import com.smartcampus.auth.service.AuthService;
 import com.smartcampus.user.User;
-import com.smartcampus.user.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -21,15 +23,17 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenService refreshTokenService;
-    private final UserRepository userRepository;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final AuthService authService;
+    private final String frontendUrl;
 
     public OAuth2LoginSuccessHandler(JwtTokenProvider jwtTokenProvider,
                                      RefreshTokenService refreshTokenService,
-                                     UserRepository userRepository) {
+                                     AuthService authService,
+                                     @Value("${app.frontend-url:http://localhost:5173}") String frontendUrl) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.refreshTokenService = refreshTokenService;
-        this.userRepository = userRepository;
+        this.authService = authService;
+        this.frontendUrl = frontendUrl;
     }
 
     @Override
@@ -37,14 +41,19 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException {
         OAuth2User principal = (OAuth2User) authentication.getPrincipal();
-        String email = principal.getAttribute("email");
+        String rawEmail = principal.getAttribute("email");
+        String email = rawEmail == null ? null : rawEmail.trim().toLowerCase();
         if (email == null) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Email missing in OAuth response");
             return;
         }
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalStateException("User missing after OAuth2 login"));
+        String name = principal.getAttribute("name");
+        if (name == null || name.isBlank()) {
+            name = principal.getAttribute("given_name");
+        }
+        String picture = principal.getAttribute("picture");
+        User user = authService.ensureOAuthUser(email, name, picture);
 
         String accessToken = jwtTokenProvider.generateAccessToken(user);
         RefreshToken refreshToken = refreshTokenService.create(user);
@@ -54,8 +63,14 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         log.info("OAuth2 login successful for {}", email);
 
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.setContentType("application/json");
-        objectMapper.writeValue(response.getWriter(), payload);
+        String redirectUrl = frontendUrl
+                + "/oauth/callback#accessToken="
+            + URLEncoder.encode(payload.getAccessToken(), StandardCharsets.UTF_8)
+                + "&refreshToken="
+            + URLEncoder.encode(payload.getRefreshToken(), StandardCharsets.UTF_8)
+                + "&expiresInSeconds="
+            + payload.getExpiresInSeconds();
+
+        response.sendRedirect(redirectUrl);
     }
 }
