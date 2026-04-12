@@ -1,8 +1,10 @@
 package com.smartcampus.incident.controller;
 
+import com.smartcampus.incident.dto.CommentRequestDto;
 import com.smartcampus.incident.entity.TicketComment;
 import com.smartcampus.incident.service.CommentService;
 
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,10 +24,9 @@ public class CommentController {
     @PostMapping("/{ticketId}")
     public TicketComment addComment(
             @PathVariable Long ticketId,
-            @RequestParam String author,
-            @RequestParam String message) {
+            @Valid @RequestBody CommentRequestDto request) {
 
-        return commentService.addComment(ticketId, author, message);
+        return commentService.addComment(ticketId, request);
     }
 
     // get comments

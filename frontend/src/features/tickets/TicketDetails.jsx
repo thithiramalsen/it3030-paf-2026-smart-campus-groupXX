@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
   getTicketById,
@@ -8,9 +8,11 @@ import {
   assignTechnician,
   updateTicketStatus
 } from "../../api/ticketsApi"; // ✅ use API
+import { useAuth } from "../auth/AuthContext";
 
 export default function TicketDetails() {
   const { id } = useParams();
+  const { user } = useAuth();
 
   const [ticket, setTicket] = useState(null);
   const [comments, setComments] = useState([]);
@@ -22,6 +24,28 @@ export default function TicketDetails() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const role = user?.role || "USER";
+  const isAdmin = role === "ADMIN";
+  const isTechnician = role === "TECHNICIAN";
+  const canManageStatus = isAdmin || isTechnician;
+
+  const authorLabel = useMemo(() => {
+    return user?.fullName || user?.email || "User";
+  }, [user]);
+
+  const technicianLabel = useMemo(() => {
+    const raw = ticket?.technicianAssigned || "";
+    if (raw.startsWith("{") && raw.endsWith("}")) {
+      try {
+        const parsed = JSON.parse(raw);
+        return parsed.technician || raw;
+      } catch {
+        return raw;
+      }
+    }
+    return raw;
+  }, [ticket]);
 
   // ✅ LOAD DATA (FIXED)
   const loadData = async () => {
@@ -53,7 +77,7 @@ export default function TicketDetails() {
     if (!newComment) return;
 
     try {
-      await addComment(id, newComment); // ✅ correct body
+      await addComment(id, authorLabel, newComment);
       setNewComment("");
       loadData();
     } catch (err) {
@@ -93,112 +117,127 @@ export default function TicketDetails() {
   };
 
   // 🔴 LOADING / ERROR
-  if (loading) return <p style={{ padding: 20 }}>Loading ticket...</p>;
+  if (loading) return <div className="page-block">Loading ticket...</div>;
 
   if (error || !ticket) {
     return (
-      <div style={{ padding: 20 }}>
-        ❌ Ticket not found or API failed <br />
-        Check backend / console
+      <div className="page-block">
+        ❌ Ticket not found or API failed.
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: "20px auto" }}>
-      <h2>🎫 Ticket Details</h2>
-
-      {/* INFO */}
-      <div style={{
-        border: "1px solid #ddd",
-        padding: 16,
-        borderRadius: 10,
-        background: "#fff"
-      }}>
-        <h3>{ticket.title}</h3>
-        <p>{ticket.description}</p>
-
-        <p><strong>Status:</strong> {ticket.status}</p>
-        <p><strong>Priority:</strong> {ticket.priority}</p>
-        <p><strong>Category:</strong> {ticket.category}</p>
-        <p><strong>Location:</strong> {ticket.location}</p>
-
-        <p><strong>Technician:</strong> {ticket.technicianAssigned || "Not Assigned"}</p>
-        <p><strong>Resolution:</strong> {ticket.resolutionNotes || "Not resolved yet"}</p>
+    <div className="page-block">
+      <div className="inline-actions spread">
+        <h1>Ticket Details</h1>
+        <span className="muted">#{ticket.id}</span>
       </div>
 
-      {/* ADMIN */}
-      <div style={{ marginTop: 20 }}>
-        <h3>🛠 Admin Actions</h3>
+      <section className="card">
+        <h2>{ticket.title}</h2>
+        <p className="muted">{ticket.description}</p>
 
-        <div style={{ marginBottom: 10 }}>
-          <input
-            placeholder="Technician name"
-            value={technician}
-            onChange={(e) => setTechnician(e.target.value)}
-            style={{ padding: 6, marginRight: 6 }}
-          />
-          <button onClick={handleAssign}>Assign</button>
+        <div className="card-grid four">
+          <div>
+            <p className="muted">Status</p>
+            <strong>{ticket.status}</strong>
+          </div>
+          <div>
+            <p className="muted">Priority</p>
+            <strong>{ticket.priority}</strong>
+          </div>
+          <div>
+            <p className="muted">Category</p>
+            <strong>{ticket.category}</strong>
+          </div>
+          <div>
+            <p className="muted">Location</p>
+            <strong>{ticket.location}</strong>
+          </div>
         </div>
 
-        <div>
+        <div className="inline-actions">
+          <span><strong>Technician:</strong> {technicianLabel || "Not Assigned"}</span>
+          <span><strong>Resolution:</strong> {ticket.resolutionNotes || "Not resolved yet"}</span>
+        </div>
+      </section>
+
+      {isAdmin && (
+        <section className="card">
+          <h3>Assign Technician</h3>
+          <div className="inline-actions">
+            <input
+              placeholder="Technician email"
+              value={technician}
+              onChange={(e) => setTechnician(e.target.value)}
+            />
+            <button className="btn-primary" onClick={handleAssign}>Assign</button>
+          </div>
+        </section>
+      )}
+
+      {canManageStatus && (
+        <section className="card">
+          <h3>Update Status</h3>
           <input
             placeholder="Resolution notes"
             value={resolution}
             onChange={(e) => setResolution(e.target.value)}
-            style={{ padding: 6 }}
           />
-
-          <div style={{ marginTop: 6 }}>
-            <button onClick={() => handleUpdate("IN_PROGRESS")}>Start</button>
-            <button onClick={() => handleUpdate("RESOLVED")}>Resolve</button>
-            <button onClick={() => handleUpdate("CLOSED")}>Close</button>
+          <div className="inline-actions">
+            <button className="btn-outline" onClick={() => handleUpdate("IN_PROGRESS")}>Start</button>
+            <button className="btn-outline" onClick={() => handleUpdate("RESOLVED")}>Resolve</button>
+            <button className="btn-danger" onClick={() => handleUpdate("CLOSED")}>Close</button>
           </div>
-        </div>
-      </div>
+        </section>
+      )}
 
-      {/* ATTACHMENTS */}
-      <div style={{ marginTop: 20 }}>
-        <h3>📎 Attachments</h3>
-
-        {attachments.length === 0 && <p>No attachments</p>}
-
+      <section className="card">
+        <h3>Attachments</h3>
+        {attachments.length === 0 && <p className="muted">No attachments uploaded.</p>}
         {attachments.map((a) => (
-          <div key={a.id}>
-            <a
-              href={`http://localhost:8080/${a.filePath}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {a.fileName}
-            </a>
-          </div>
+          <a
+            key={a.id}
+            href={`http://localhost:8080/${a.filePath}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {a.fileName}
+          </a>
         ))}
-      </div>
+      </section>
 
-      {/* COMMENTS */}
-      <div style={{ marginTop: 20 }}>
-        <h3>💬 Comments</h3>
-
-        {comments.map((c) => (
-          <div key={c.id} style={{
-            borderBottom: "1px solid #eee",
-            padding: 8
-          }}>
-            <strong>{c.author}</strong>: {c.message}
-          </div>
-        ))}
-
-        <div style={{ marginTop: 10 }}>
-          <input
-            placeholder="Write comment..."
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            style={{ padding: 6, marginRight: 6 }}
-          />
-          <button onClick={handleAddComment}>Send</button>
+      <section className="card">
+        <div className="inline-actions spread">
+          <h3>Comments</h3>
+          <span className="muted">{comments.length} replies</span>
         </div>
-      </div>
+
+        {comments.length === 0 && <p className="muted">No comments yet.</p>}
+
+        <div className="stack-list">
+          {comments.map((c) => (
+            <div key={c.id} className="card">
+              <strong>{c.author}</strong>
+              <p>{c.message}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="form-grid">
+          <label>
+            <span className="muted">Reply as {authorLabel}</span>
+            <textarea
+              placeholder="Write a reply..."
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              rows={3}
+            />
+          </label>
+          <button className="btn-primary" onClick={handleAddComment}>Send Reply</button>
+        </div>
+      </section>
     </div>
   );
 }

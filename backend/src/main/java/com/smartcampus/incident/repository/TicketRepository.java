@@ -13,4 +13,8 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
     // ✅ THIS FIXES YOUR ERROR
     List<Ticket> findByStatus(TicketStatus status);
+
+    List<Ticket> findByCreatedByEmail(String createdByEmail);
+
+    List<Ticket> findByTechnicianAssignedIgnoreCase(String technicianAssigned);
 }

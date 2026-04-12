@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   getTicketById,
@@ -8,12 +8,14 @@ import {
   assignTechnician
 } from "../../api/ticketsApi";
 import { adminApi } from "../../api/adminApi";
+import { useAuth } from "../auth/AuthContext";
 
 const STATUS_OPTIONS = ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"];
 
 export default function AdminReplyTickets() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [ticket, setTicket] = useState(null);
   const [comments, setComments] = useState([]);
@@ -26,6 +28,10 @@ export default function AdminReplyTickets() {
   const [selectedTechnician, setSelectedTechnician] = useState("");
 
   const [loading, setLoading] = useState(true);
+
+  const authorLabel = useMemo(() => {
+    return user?.fullName || user?.email || "Admin";
+  }, [user]);
 
   // 🔥 LOAD ALL DATA
   useEffect(() => {
@@ -72,7 +78,7 @@ export default function AdminReplyTickets() {
     if (!comment) return alert("Enter a comment");
 
     try {
-      await addComment(id, comment);
+      await addComment(id, authorLabel, comment);
       setComment("");
       loadData();
     } catch (err) {
@@ -86,13 +92,27 @@ export default function AdminReplyTickets() {
     if (!selectedTechnician) return alert("Select technician");
 
     try {
-      await assignTechnician(id, selectedTechnician);
+      await assignTechnician(id, normalizeTechnicianInput(selectedTechnician));
       alert("Technician assigned");
       loadData();
     } catch (err) {
       console.error(err);
       alert("Assign failed");
     }
+  };
+
+  const normalizeTechnicianInput = (value) => {
+    if (!value) return "";
+    const trimmed = value.trim();
+    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        return (parsed.technician || "").toString().trim();
+      } catch {
+        return trimmed;
+      }
+    }
+    return trimmed;
   };
 
   // ✅ UPDATE STATUS
@@ -160,7 +180,7 @@ export default function AdminReplyTickets() {
           <option value="">Select Technician</option>
 
           {technicians.map((tech) => (
-            <option key={tech.id} value={tech.name || tech.email}>
+            <option key={tech.id} value={tech.email}>
               {tech.name || tech.email}
             </option>
           ))}

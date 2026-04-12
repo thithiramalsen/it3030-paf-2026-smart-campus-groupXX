@@ -48,6 +48,13 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.getMyTickets());
     }
 
+    // ✅ GET ASSIGNED (TECHNICIAN)
+    @GetMapping("/assigned")
+    @PreAuthorize("hasRole('TECHNICIAN')")
+    public ResponseEntity<List<TicketResponseDto>> getAssignedTickets() {
+        return ResponseEntity.ok(ticketService.getAssignedTickets());
+    }
+
     // ✅ GET ONE
     @GetMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
@@ -76,10 +83,10 @@ public class TicketController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TicketResponseDto> assignTechnician(
             @PathVariable Long id,
-            @RequestBody String technician) {
+            @Valid @RequestBody AssignTechnicianRequestDto request) {
 
         return ResponseEntity.ok(
-                ticketService.assignTechnician(id, technician)
+                ticketService.assignTechnician(id, request.getTechnician())
         );
     }
 

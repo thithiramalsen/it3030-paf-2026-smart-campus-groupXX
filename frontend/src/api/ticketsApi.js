@@ -15,6 +15,11 @@ export const getMyTickets = () => {
   return httpClient.get("/api/tickets/my");
 };
 
+// ✅ GET ASSIGNED (TECHNICIAN)
+export const getAssignedTickets = () => {
+  return httpClient.get("/api/tickets/assigned");
+};
+
 // ✅ GET ONE TICKET
 export const getTicketById = (id) => {
   return httpClient.get(`/api/tickets/${id}`);
@@ -27,7 +32,7 @@ export const updateTicketStatus = (id, payload) => {
 
 // ✅ ASSIGN TECHNICIAN
 export const assignTechnician = (id, technician) => {
-  return httpClient.put(`/api/tickets/${id}/assign`, technician);
+  return httpClient.put(`/api/tickets/${id}/assign`, { technician });
 };
 
 // ✅ UPLOAD ATTACHMENT
@@ -52,9 +57,9 @@ export const getComments = (ticketId) => {
   return httpClient.get(`/api/comments/${ticketId}`);
 };
 
-export const addComment = (ticketId, message) => {
+export const addComment = (ticketId, author, message) => {
   return httpClient.post(`/api/comments/${ticketId}`, {
-    author: "Admin",
+    author,
     message,
   });
 

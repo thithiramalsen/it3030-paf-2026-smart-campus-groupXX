@@ -24,6 +24,7 @@ import MyTicket from '../features/tickets/MyTicket';
 import NewTicket from '../features/tickets/NewTicket';
 import AdminTickets from '../features/tickets/AdminTickets';
 import AdminReplyTickets from '../features/tickets/AdminReplyTickets';
+import TicketDetails from '../features/tickets/TicketDetails';
 
 function inShell(element) {
   return (
@@ -57,6 +58,7 @@ export default function AppRoutes() {
           {/* TICKETS (USER) */}
           <Route path="/tickets/new" element={inShell(<NewTicket />)} />
           <Route path="/tickets/my" element={inShell(<MyTicket />)} />
+          <Route path="/tickets/:id" element={inShell(<TicketDetails />)} />
 
           {/* ADMIN BOOKINGS */}
           <Route

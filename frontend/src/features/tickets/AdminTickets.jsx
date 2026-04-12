@@ -40,20 +40,48 @@ export default function AdminTickets() {
       ? tickets
       : tickets.filter((t) => t.status === filter);
 
+  const formatTechnician = (value) => {
+    if (!value) return "Not Assigned";
+    if (value.startsWith("{") && value.endsWith("}")) {
+      try {
+        const parsed = JSON.parse(value);
+        return parsed.technician || value;
+      } catch {
+        return value;
+      }
+    }
+    return value;
+  };
+
   // ✅ ASSIGN
   const handleAssign = async (id, e) => {
     e.stopPropagation();
 
-    if (!technician) return alert("Enter technician name");
+    const normalized = normalizeTechnicianInput(technician);
+    if (!normalized) return alert("Enter technician email");
 
     try {
-      await assignTechnician(id, technician);
+      await assignTechnician(id, normalized);
       setTechnician("");
       loadTickets();
     } catch (err) {
       console.error(err);
       alert("Assign failed");
     }
+  };
+
+  const normalizeTechnicianInput = (value) => {
+    if (!value) return "";
+    const trimmed = value.trim();
+    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        return (parsed.technician || "").toString().trim();
+      } catch {
+        return trimmed;
+      }
+    }
+    return trimmed;
   };
 
   // ✅ UPDATE
@@ -149,7 +177,7 @@ export default function AdminTickets() {
 
           <p>
             <strong>Technician:</strong>{" "}
-            {t.technicianAssigned || "Not Assigned"}
+            {formatTechnician(t.technicianAssigned)}
           </p>
 
           <p>
@@ -160,7 +188,7 @@ export default function AdminTickets() {
           {/* ASSIGN */}
           <div style={{ marginTop: 10 }}>
             <input
-              placeholder="Technician name"
+              placeholder="Technician email"
               value={technician}
               onChange={(e) => setTechnician(e.target.value)}
             />

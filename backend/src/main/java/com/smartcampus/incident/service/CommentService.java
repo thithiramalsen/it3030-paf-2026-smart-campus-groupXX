@@ -1,9 +1,12 @@
 package com.smartcampus.incident.service;
 
+import com.smartcampus.incident.dto.CommentRequestDto;
 import com.smartcampus.incident.entity.Ticket;
 import com.smartcampus.incident.entity.TicketComment;
 import com.smartcampus.incident.repository.TicketCommentRepository;
 import com.smartcampus.incident.repository.TicketRepository;
+import com.smartcampus.user.CurrentUserService;
+import com.smartcampus.user.User;
 
 import org.springframework.stereotype.Service;
 
@@ -14,25 +17,45 @@ public class CommentService {
 
     private final TicketRepository ticketRepository;
     private final TicketCommentRepository commentRepository;
+    private final CurrentUserService currentUserService;
 
     public CommentService(TicketRepository ticketRepository,
-                          TicketCommentRepository commentRepository) {
+                          TicketCommentRepository commentRepository,
+                          CurrentUserService currentUserService) {
         this.ticketRepository = ticketRepository;
         this.commentRepository = commentRepository;
+        this.currentUserService = currentUserService;
     }
 
     // add comment
-    public TicketComment addComment(Long ticketId, String author, String message) {
+    public TicketComment addComment(Long ticketId, CommentRequestDto request) {
 
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new RuntimeException("Ticket not found"));
 
         TicketComment comment = new TicketComment();
-        comment.setAuthor(author);
-        comment.setMessage(message);
+        comment.setAuthor(resolveAuthor(request.getAuthor()));
+        comment.setMessage(request.getMessage());
         comment.setTicket(ticket);
 
         return commentRepository.save(comment);
+    }
+
+    private String resolveAuthor(String providedAuthor) {
+        if (providedAuthor != null && !providedAuthor.isBlank()) {
+            return providedAuthor.trim();
+        }
+
+        User currentUser = currentUserService.getCurrentUser().orElse(null);
+        if (currentUser == null) {
+            return "Unknown";
+        }
+
+        if (currentUser.getName() != null && !currentUser.getName().isBlank()) {
+            return currentUser.getName().trim();
+        }
+
+        return currentUser.getEmail();
     }
 
     // get comments

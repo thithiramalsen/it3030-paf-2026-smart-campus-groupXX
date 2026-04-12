@@ -13,6 +13,8 @@ public class Ticket {
 
     private String technicianAssigned;
 
+    private String createdByEmail;
+
     private String resolutionNotes;
 
     private String description;
@@ -58,6 +60,14 @@ public class Ticket {
 
     public void setTechnicianAssigned(String technicianAssigned) {
         this.technicianAssigned = technicianAssigned;
+    }
+
+    public String getCreatedByEmail() {
+        return createdByEmail;
+    }
+
+    public void setCreatedByEmail(String createdByEmail) {
+        this.createdByEmail = createdByEmail;
     }
 
     public TicketStatus getStatus() {
