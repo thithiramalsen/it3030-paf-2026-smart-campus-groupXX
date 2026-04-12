@@ -22,7 +22,7 @@ public class TicketController {
         this.ticketService = ticketService;
     }
 
-    // ✅ CREATE TICKET
+    // ✅ CREATE
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<TicketResponseDto> createTicket(
@@ -41,7 +41,7 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.getAllTickets(status));
     }
 
-    // ✅ GET MY TICKETS
+    // ✅ GET MY
     @GetMapping("/my")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<TicketResponseDto>> getMyTickets() {
@@ -55,7 +55,7 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.getTicket(id));
     }
 
-    // ✅ UPDATE STATUS + RESOLUTION
+    // ✅ UPDATE STATUS
     @PutMapping("/{id}/status")
     @PreAuthorize("hasAnyRole('ADMIN','TECHNICIAN')")
     public ResponseEntity<TicketResponseDto> updateStatus(
@@ -81,5 +81,15 @@ public class TicketController {
         return ResponseEntity.ok(
                 ticketService.assignTechnician(id, technician)
         );
+    }
+
+    // 🔥 ✅ DELETE TICKET
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteTicket(@PathVariable Long id) {
+
+        ticketService.deleteTicket(id);
+
+        return ResponseEntity.noContent().build();
     }
 }

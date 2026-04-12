@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { getMyTickets } from "../../api/ticketsApi"; // ✅ use API
 
 const STATUS_COLORS = {
   OPEN: "#f59e0b",
@@ -20,9 +20,10 @@ export default function MyTicket() {
 
   const fetchTickets = async () => {
     try {
-      const res = await axios.get("http://localhost:8080/api/tickets");
+      const res = await getMyTickets(); // ✅ fixed endpoint + token
       setTickets(res.data);
     } catch (err) {
+      console.error(err);
       setError("Failed to load tickets");
     } finally {
       setLoading(false);
@@ -49,15 +50,12 @@ export default function MyTicket() {
             background: "#f9fafb"
           }}>
             
-            {/* Title */}
             <h3 style={{ marginBottom: 6 }}>{ticket.title}</h3>
 
-            {/* Description */}
             <p style={{ fontSize: 14, color: "#6b7280" }}>
               {ticket.description}
             </p>
 
-            {/* Info Row */}
             <div style={{
               display: "flex",
               justifyContent: "space-between",
@@ -70,7 +68,6 @@ export default function MyTicket() {
               <span><strong>Location:</strong> {ticket.location}</span>
             </div>
 
-            {/* Status */}
             <div style={{ marginTop: 10 }}>
               <span style={{
                 padding: "4px 10px",
@@ -83,14 +80,12 @@ export default function MyTicket() {
               </span>
             </div>
 
-            {/* Technician */}
             {ticket.technicianAssigned && (
               <p style={{ marginTop: 8 }}>
                 👨‍🔧 Assigned: {ticket.technicianAssigned}
               </p>
             )}
 
-            {/* Resolution */}
             {ticket.resolutionNotes && (
               <p style={{ marginTop: 8, color: "#16a34a" }}>
                 ✅ Resolution: {ticket.resolutionNotes}

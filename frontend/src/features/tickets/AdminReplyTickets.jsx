@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import {
+  getTicketById,
+  getComments,
+  addComment,
+  updateTicketStatus,
+  assignTechnician
+} from "../../api/ticketsApi";
+import { adminApi } from "../../api/adminApi";
 
 const STATUS_OPTIONS = ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"];
 
@@ -15,29 +22,28 @@ export default function AdminReplyTickets() {
   const [status, setStatus] = useState("");
   const [resolution, setResolution] = useState("");
 
+  const [technicians, setTechnicians] = useState([]);
+  const [selectedTechnician, setSelectedTechnician] = useState("");
+
   const [loading, setLoading] = useState(true);
 
   // 🔥 LOAD ALL DATA
   useEffect(() => {
     loadData();
+    loadTechnicians();
   }, [id]);
 
   const loadData = async () => {
     try {
       setLoading(true);
 
-      const ticketRes = await axios.get(
-        `http://localhost:8080/api/tickets/${id}`
-      );
-
-      const commentRes = await axios.get(
-        `http://localhost:8080/api/comments/${id}`
-      );
+      const ticketRes = await getTicketById(id);
+      const commentRes = await getComments(id);
 
       setTicket(ticketRes.data);
       setComments(commentRes.data);
-
       setStatus(ticketRes.data.status);
+
     } catch (err) {
       console.error(err);
       alert("Failed to load ticket");
@@ -46,22 +52,27 @@ export default function AdminReplyTickets() {
     }
   };
 
-  // ✅ ADD COMMENT (FIXED API)
+  // 🔥 FETCH TECHNICIANS
+  const loadTechnicians = async () => {
+    try {
+      const res = await adminApi.getUsers();
+
+      const techs = res.data.filter(
+        (u) => u.role === "TECHNICIAN"
+      );
+
+      setTechnicians(techs);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // ✅ ADD COMMENT
   const handleComment = async () => {
     if (!comment) return alert("Enter a comment");
 
     try {
-      await axios.post(
-        `http://localhost:8080/api/comments/${id}`,
-        null,
-        {
-          params: {
-            author: "Admin",
-            message: comment,
-          },
-        }
-      );
-
+      await addComment(id, comment);
       setComment("");
       loadData();
     } catch (err) {
@@ -70,16 +81,27 @@ export default function AdminReplyTickets() {
     }
   };
 
-  // ✅ UPDATE STATUS (DTO BASED)
+  // ✅ ASSIGN TECHNICIAN
+  const handleAssign = async () => {
+    if (!selectedTechnician) return alert("Select technician");
+
+    try {
+      await assignTechnician(id, selectedTechnician);
+      alert("Technician assigned");
+      loadData();
+    } catch (err) {
+      console.error(err);
+      alert("Assign failed");
+    }
+  };
+
+  // ✅ UPDATE STATUS
   const handleUpdate = async () => {
     try {
-      await axios.put(
-        `http://localhost:8080/api/tickets/${id}/status`,
-        {
-          status: status,
-          resolutionNotes: resolution,
-        }
-      );
+      await updateTicketStatus(id, {
+        status: status,
+        resolutionNotes: resolution,
+      });
 
       alert("Updated successfully");
       navigate("/admin/tickets");
@@ -95,7 +117,7 @@ export default function AdminReplyTickets() {
   return (
     <div style={{ maxWidth: 700, margin: "0 auto", padding: 20 }}>
 
-      {/* BACK BUTTON */}
+      {/* BACK */}
       <button onClick={() => navigate("/admin/tickets")} style={{
         marginBottom: 16,
         padding: "6px 12px",
@@ -107,7 +129,7 @@ export default function AdminReplyTickets() {
 
       <h2>🎫 Ticket Details & Reply</h2>
 
-      {/* 🔥 TICKET INFO */}
+      {/* INFO */}
       <div style={{
         border: "1px solid #e5e7eb",
         padding: 16,
@@ -126,7 +148,39 @@ export default function AdminReplyTickets() {
         </p>
       </div>
 
-      {/* 🔥 COMMENTS */}
+      {/* 🔥 ASSIGN TECHNICIAN */}
+      <div style={{ marginTop: 20 }}>
+        <h3>👨‍🔧 Assign Technician</h3>
+
+        <select
+          value={selectedTechnician}
+          onChange={(e) => setSelectedTechnician(e.target.value)}
+          style={{ width: "100%", padding: 8, marginBottom: 10 }}
+        >
+          <option value="">Select Technician</option>
+
+          {technicians.map((tech) => (
+            <option key={tech.id} value={tech.name || tech.email}>
+              {tech.name || tech.email}
+            </option>
+          ))}
+        </select>
+
+        <button
+          onClick={handleAssign}
+          style={{
+            padding: "8px 16px",
+            background: "#2563eb",
+            color: "#fff",
+            border: "none",
+            borderRadius: 6,
+          }}
+        >
+          Assign Technician
+        </button>
+      </div>
+
+      {/* COMMENTS */}
       <div style={{ marginTop: 20 }}>
         <h3>💬 Comments</h3>
 
@@ -164,7 +218,7 @@ export default function AdminReplyTickets() {
         </button>
       </div>
 
-      {/* 🔥 UPDATE */}
+      {/* UPDATE */}
       <div style={{ marginTop: 20 }}>
         <h3>🔄 Update Ticket</h3>
 

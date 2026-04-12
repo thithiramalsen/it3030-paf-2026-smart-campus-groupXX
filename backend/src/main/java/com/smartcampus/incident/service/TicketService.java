@@ -124,4 +124,13 @@ public class TicketService {
 
         return dto;
     }
+
+    public void deleteTicket(Long id) {
+
+    if (!ticketRepository.existsById(id)) {
+        throw new RuntimeException("Ticket not found");
+    }
+
+    ticketRepository.deleteById(id);
+    }
 }

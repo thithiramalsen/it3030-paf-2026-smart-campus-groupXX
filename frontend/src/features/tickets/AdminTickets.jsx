@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import {
+  getAllTickets,
+  assignTechnician,
+  updateTicketStatus,
+  deleteTicket // ✅ added
+} from "../../api/ticketsApi";
 
 const STATUS_OPTIONS = ["ALL", "OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"];
 
@@ -12,12 +17,12 @@ export default function AdminTickets() {
   const [technician, setTechnician] = useState("");
   const [resolution, setResolution] = useState("");
 
-  const navigate = useNavigate(); // ✅ navigation
+  const navigate = useNavigate();
 
   const loadTickets = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:8080/api/tickets");
+      const res = await getAllTickets();
       setTickets(res.data);
     } catch (err) {
       console.error(err);
@@ -35,21 +40,14 @@ export default function AdminTickets() {
       ? tickets
       : tickets.filter((t) => t.status === filter);
 
-  // ✅ ASSIGN TECHNICIAN (FIXED)
+  // ✅ ASSIGN
   const handleAssign = async (id, e) => {
     e.stopPropagation();
 
     if (!technician) return alert("Enter technician name");
 
     try {
-      await axios.put(
-        `http://localhost:8080/api/tickets/${id}/assign`,
-        technician,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-
+      await assignTechnician(id, technician);
       setTechnician("");
       loadTickets();
     } catch (err) {
@@ -58,24 +56,36 @@ export default function AdminTickets() {
     }
   };
 
-  // ✅ UPDATE STATUS (FIXED)
+  // ✅ UPDATE
   const handleUpdate = async (id, status, e) => {
     e.stopPropagation();
 
     try {
-      await axios.put(
-        `http://localhost:8080/api/tickets/${id}/status`,
-        {
-          status: status,
-          resolutionNotes: resolution,
-        }
-      );
+      await updateTicketStatus(id, {
+        status: status,
+        resolutionNotes: resolution,
+      });
 
       setResolution("");
       loadTickets();
     } catch (err) {
       console.error(err);
       alert("Update failed");
+    }
+  };
+
+  // 🔥 DELETE
+  const handleDelete = async (id, e) => {
+    e.stopPropagation();
+
+    if (!window.confirm("Are you sure you want to delete this ticket?")) return;
+
+    try {
+      await deleteTicket(id);
+      loadTickets();
+    } catch (err) {
+      console.error(err);
+      alert("Delete failed");
     }
   };
 
@@ -106,11 +116,11 @@ export default function AdminTickets() {
 
       {loading && <p>Loading...</p>}
 
-      {/* 🔥 TICKET LIST */}
+      {/* TICKETS */}
       {filteredTickets.map((t) => (
         <div
           key={t.id}
-          onClick={() => navigate(`/admin/tickets/${t.id}`)} // ✅ NAVIGATION
+          onClick={() => navigate(`/admin/tickets/${t.id}`)}
           style={{
             border: "1px solid #ddd",
             padding: 16,
@@ -135,9 +145,7 @@ export default function AdminTickets() {
             📍 {t.location} | ⚡ {t.priority} | 🏷 {t.category}
           </p>
 
-          <p>
-            <strong>Status:</strong> {t.status}
-          </p>
+          <p><strong>Status:</strong> {t.status}</p>
 
           <p>
             <strong>Technician:</strong>{" "}
@@ -183,6 +191,21 @@ export default function AdminTickets() {
               </button>
             </div>
           </div>
+
+          {/* 🔥 DELETE BUTTON */}
+          <button
+            onClick={(e) => handleDelete(t.id, e)}
+            style={{
+              marginTop: 12,
+              padding: "6px 12px",
+              background: "#ef4444",
+              color: "#fff",
+              border: "none",
+              borderRadius: 6
+            }}
+          >
+            Delete Ticket
+          </button>
         </div>
       ))}
     </div>

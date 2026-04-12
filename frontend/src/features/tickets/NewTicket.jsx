@@ -1,9 +1,16 @@
 import { useState } from "react";
-import axios from "axios";
+import { createTicket, uploadAttachment } from "../../api/ticketsApi"; // ✅ changed
 
 const CATEGORY_OPTIONS = ["ELECTRICAL", "NETWORK", "HARDWARE", "SOFTWARE"];
 const PRIORITY_OPTIONS = ["LOW", "MEDIUM", "HIGH"];
-const LOCATION_OPTIONS = ["LAB", "CLASSROOM", "LIBRARY", "OFFICE"];
+const LOCATION_OPTIONS = [ 
+    "LAB_1",
+    "LAB_2",
+    "LAB_B",
+    "LECTURE_HALL_A",
+    "LECTURE_HALL_B",
+    "LIBRARY",
+    "CAFETERIA" ];
 
 export default function NewTicket() {
   const [form, setForm] = useState({
@@ -28,7 +35,7 @@ export default function NewTicket() {
     setFile(e.target.files[0]);
   };
 
-  // 🔥 ✅ ONLY THIS PART CHANGED
+  // ✅ FIXED SUBMIT (uses API + token automatically)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -36,41 +43,20 @@ export default function NewTicket() {
     setSuccess(false);
 
     try {
-      // ✅ CREATE TICKET (with headers)
-      const res = await axios.post(
-        "http://localhost:8080/api/tickets",
-        {
-          title: form.title,
-          description: form.description,
-          category: form.category,
-          priority: form.priority,
-          location: form.location,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`, // 🔥 important
-          },
-        }
-      );
+      // 🔥 CREATE TICKET
+      const res = await createTicket({
+        title: form.title,
+        description: form.description,
+        category: form.category,
+        priority: form.priority,
+        location: form.location,
+      });
 
       const ticketId = res.data.id;
 
-      // ✅ UPLOAD FILE (if exists)
+      // 🔥 UPLOAD FILE
       if (file) {
-        const formData = new FormData();
-        formData.append("file", file);
-
-        await axios.post(
-          `http://localhost:8080/api/attachments/${ticketId}`,
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+        await uploadAttachment(ticketId, file);
       }
 
       setSuccess(true);
@@ -106,6 +92,7 @@ export default function NewTicket() {
 
       <form onSubmit={handleSubmit}>
 
+        {/* Title */}
         <input
           name="title"
           placeholder="Title"
@@ -115,6 +102,7 @@ export default function NewTicket() {
           style={{ width: "100%", padding: 10, marginBottom: 12 }}
         />
 
+        {/* Description */}
         <textarea
           name="description"
           placeholder="Describe the issue..."
@@ -125,6 +113,7 @@ export default function NewTicket() {
           style={{ width: "100%", padding: 10, marginBottom: 12 }}
         />
 
+        {/* Category */}
         <select
           name="category"
           value={form.category}
@@ -138,6 +127,7 @@ export default function NewTicket() {
           ))}
         </select>
 
+        {/* Priority */}
         <select
           name="priority"
           value={form.priority}
@@ -151,6 +141,7 @@ export default function NewTicket() {
           ))}
         </select>
 
+        {/* Location */}
         <select
           name="location"
           value={form.location}
@@ -164,16 +155,18 @@ export default function NewTicket() {
           ))}
         </select>
 
-        {/* FILE */}
+        {/* File Upload */}
         <input
           type="file"
           onChange={handleFileChange}
           style={{ marginBottom: 12 }}
         />
 
+        {/* Messages */}
         {error && <p style={{ color: "red" }}>{error}</p>}
         {success && <p style={{ color: "green" }}>Ticket created successfully!</p>}
 
+        {/* Submit */}
         <button
           type="submit"
           disabled={loading}
