@@ -70,9 +70,42 @@ export default function AppRoutes() {
             }
           />
 
-          <Route path="/manager/resources/add" element={<AddResource />} />
-          <Route path="/manager/resources/edit/:id" element={<EditResource />} />
-          <Route path="/manager/resources/:id" element={<ResourceDetails />} />
+
+
+
+
+          <Route
+             path="/manager/resources/add"
+             element={
+              <RoleGuard allowedRoles={['MANAGER', 'ADMIN']}>
+                <ShellLayout>
+                    <AddResource />
+                </ShellLayout>
+              </RoleGuard>
+            }
+          />
+
+          <Route
+             path="/manager/resources/edit/:id"
+             element={
+              <RoleGuard allowedRoles={['MANAGER', 'ADMIN']}>
+                 <ShellLayout>
+                     <EditResource />
+                 </ShellLayout>
+              </RoleGuard>
+            }
+          />
+
+          <Route
+             path="/manager/resources/:id"
+             element={
+                <RoleGuard allowedRoles={['MANAGER', 'ADMIN']}>
+                  <ShellLayout>
+                     <ResourceDetails />
+                  </ShellLayout>
+                </RoleGuard>
+            }
+          />
 
          
           <Route
