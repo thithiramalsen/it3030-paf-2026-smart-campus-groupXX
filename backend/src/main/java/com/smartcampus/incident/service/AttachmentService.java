@@ -18,9 +18,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
 
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-
 @Service
 public class AttachmentService {
 
@@ -66,7 +63,7 @@ public class AttachmentService {
     TicketAttachment attachment = new TicketAttachment();
     attachment.setFileName(fileName);
     attachment.setFileType(file.getContentType());
-    attachment.setFilePath(dest.getAbsolutePath());
+    attachment.setFilePath(fileName);
     attachment.setTicket(ticket);
 
     return attachmentRepository.save(attachment);
@@ -87,7 +84,7 @@ public class AttachmentService {
         TicketAttachment attachment = attachmentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Attachment not found"));
 
-        Path path = new File(attachment.getFilePath()).toPath();
+        Path path = resolveAttachmentPath(attachment);
 
         Resource resource = new UrlResource(path.toUri());
 
@@ -96,5 +93,19 @@ public class AttachmentService {
         }
 
         return resource;
+    }
+
+    private Path resolveAttachmentPath(TicketAttachment attachment) {
+        String storedPath = attachment.getFilePath();
+        if (storedPath == null || storedPath.isBlank()) {
+            return new File(uploadDir + attachment.getFileName()).toPath();
+        }
+
+        Path candidate = new File(storedPath).toPath();
+        if (candidate.isAbsolute()) {
+            return candidate;
+        }
+
+        return new File(uploadDir + storedPath).toPath();
     }
 }

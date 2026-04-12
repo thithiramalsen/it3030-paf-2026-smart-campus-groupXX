@@ -3,9 +3,11 @@ package com.smartcampus.incident.service;
 import com.smartcampus.incident.dto.CommentRequestDto;
 import com.smartcampus.incident.entity.Ticket;
 import com.smartcampus.incident.entity.TicketComment;
+import com.smartcampus.incident.entity.TicketStatus;
 import com.smartcampus.incident.repository.TicketCommentRepository;
 import com.smartcampus.incident.repository.TicketRepository;
 import com.smartcampus.user.CurrentUserService;
+import com.smartcampus.user.Role;
 import com.smartcampus.user.User;
 
 import org.springframework.stereotype.Service;
@@ -32,6 +34,15 @@ public class CommentService {
 
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new RuntimeException("Ticket not found"));
+
+        User currentUser = currentUserService.getCurrentUser()
+                .orElseThrow(() -> new RuntimeException("You must be logged in to comment"));
+
+        if (ticket.getStatus() == TicketStatus.RESOLVED || ticket.getStatus() == TicketStatus.CLOSED) {
+            if (currentUser.getRole() != Role.ADMIN) {
+                throw new RuntimeException("Comments are disabled for resolved or closed tickets");
+            }
+        }
 
         TicketComment comment = new TicketComment();
         comment.setAuthor(resolveAuthor(request.getAuthor()));

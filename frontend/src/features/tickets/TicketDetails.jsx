@@ -29,6 +29,8 @@ export default function TicketDetails() {
   const isAdmin = role === "ADMIN";
   const isTechnician = role === "TECHNICIAN";
   const canManageStatus = isAdmin || isTechnician;
+  const isResolvedOrClosed = ticket?.status === "RESOLVED" || ticket?.status === "CLOSED";
+  const canReply = isAdmin || !isResolvedOrClosed;
 
   const authorLabel = useMemo(() => {
     return user?.fullName || user?.email || "User";
@@ -74,6 +76,7 @@ export default function TicketDetails() {
 
   // ✅ ADD COMMENT (FIXED BODY)
   const handleAddComment = async () => {
+    if (!canReply) return;
     if (!newComment) return;
 
     try {
@@ -199,11 +202,15 @@ export default function TicketDetails() {
         {attachments.map((a) => (
           <a
             key={a.id}
-            href={`http://localhost:8080/${a.filePath}`}
+            href={`http://localhost:8080/uploads/${a.fileName}`}
             target="_blank"
             rel="noreferrer"
           >
-            {a.fileName}
+            <img src=
+              {`http://localhost:8080/uploads/${a.fileName}`}
+              alt={a.fileName}
+              style={{ maxWidth: "100%", height: "auto" }}
+            />
           </a>
         ))}
       </section>
@@ -226,6 +233,11 @@ export default function TicketDetails() {
         </div>
 
         <div className="form-grid">
+          {!canReply && (
+            <p className="muted">
+              Replies are disabled for resolved or closed tickets.
+            </p>
+          )}
           <label>
             <span className="muted">Reply as {authorLabel}</span>
             <textarea
@@ -233,9 +245,12 @@ export default function TicketDetails() {
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               rows={3}
+              disabled={!canReply}
             />
           </label>
-          <button className="btn-primary" onClick={handleAddComment}>Send Reply</button>
+          <button className="btn-primary" onClick={handleAddComment} disabled={!canReply}>
+            Send Reply
+          </button>
         </div>
       </section>
     </div>

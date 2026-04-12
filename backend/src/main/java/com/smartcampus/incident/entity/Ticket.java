@@ -1,6 +1,8 @@
 package com.smartcampus.incident.entity;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Ticket {
@@ -30,6 +32,12 @@ public class Ticket {
 
     @Enumerated(EnumType.STRING)
     private TicketLocation location;
+
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TicketComment> comments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TicketAttachment> attachments = new ArrayList<>();
 
 
     public Ticket() {}

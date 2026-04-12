@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   getTicketById,
   getComments,
+  getAttachments,
   addComment,
   updateTicketStatus,
   assignTechnician
@@ -19,6 +20,7 @@ export default function AdminReplyTickets() {
 
   const [ticket, setTicket] = useState(null);
   const [comments, setComments] = useState([]);
+  const [attachments, setAttachments] = useState([]);
 
   const [comment, setComment] = useState("");
   const [status, setStatus] = useState("");
@@ -45,9 +47,11 @@ export default function AdminReplyTickets() {
 
       const ticketRes = await getTicketById(id);
       const commentRes = await getComments(id);
+      const attachRes = await getAttachments(id);
 
       setTicket(ticketRes.data);
       setComments(commentRes.data);
+      setAttachments(attachRes.data);
       setStatus(ticketRes.data.status);
 
     } catch (err) {
@@ -166,6 +170,29 @@ export default function AdminReplyTickets() {
         <p style={{ color: "green" }}>
           ✅ {ticket.resolutionNotes || "Not resolved"}
         </p>
+      </div>
+
+      {/* ATTACHMENTS */}
+      <div style={{ marginTop: 20 }}>
+        <h3>📎 Attachments</h3>
+
+        {attachments.length === 0 && <p>No attachments uploaded.</p>}
+
+        {attachments.map((a) => (
+          <a
+            key={a.id}
+            href={`http://localhost:8080/uploads/${a.fileName}`}
+            target="_blank"
+            rel="noreferrer"
+            style={{ display: "block", marginBottom: 10 }}
+          >
+            <img
+              src={`http://localhost:8080/uploads/${a.fileName}`}
+              alt={a.fileName}
+              style={{ maxWidth: "100%", height: "auto" }}
+            />
+          </a>
+        ))}
       </div>
 
       {/* 🔥 ASSIGN TECHNICIAN */}

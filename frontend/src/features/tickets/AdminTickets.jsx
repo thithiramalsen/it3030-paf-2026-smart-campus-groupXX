@@ -2,20 +2,15 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   getAllTickets,
-  assignTechnician,
-  updateTicketStatus,
   deleteTicket // ✅ added
 } from "../../api/ticketsApi";
 
-const STATUS_OPTIONS = ["ALL", "OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"];
+const STATUS_OPTIONS = ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED", "ALL"];
 
 export default function AdminTickets() {
   const [tickets, setTickets] = useState([]);
-  const [filter, setFilter] = useState("ALL");
+  const [filter, setFilter] = useState("OPEN");
   const [loading, setLoading] = useState(true);
-
-  const [technician, setTechnician] = useState("");
-  const [resolution, setResolution] = useState("");
 
   const navigate = useNavigate();
 
@@ -53,55 +48,6 @@ export default function AdminTickets() {
     return value;
   };
 
-  // ✅ ASSIGN
-  const handleAssign = async (id, e) => {
-    e.stopPropagation();
-
-    const normalized = normalizeTechnicianInput(technician);
-    if (!normalized) return alert("Enter technician email");
-
-    try {
-      await assignTechnician(id, normalized);
-      setTechnician("");
-      loadTickets();
-    } catch (err) {
-      console.error(err);
-      alert("Assign failed");
-    }
-  };
-
-  const normalizeTechnicianInput = (value) => {
-    if (!value) return "";
-    const trimmed = value.trim();
-    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
-      try {
-        const parsed = JSON.parse(trimmed);
-        return (parsed.technician || "").toString().trim();
-      } catch {
-        return trimmed;
-      }
-    }
-    return trimmed;
-  };
-
-  // ✅ UPDATE
-  const handleUpdate = async (id, status, e) => {
-    e.stopPropagation();
-
-    try {
-      await updateTicketStatus(id, {
-        status: status,
-        resolutionNotes: resolution,
-      });
-
-      setResolution("");
-      loadTickets();
-    } catch (err) {
-      console.error(err);
-      alert("Update failed");
-    }
-  };
-
   // 🔥 DELETE
   const handleDelete = async (id, e) => {
     e.stopPropagation();
@@ -132,8 +78,8 @@ export default function AdminTickets() {
               padding: "6px 12px",
               borderRadius: 20,
               border: "1px solid #ccc",
-              background: filter === s ? "#2563eb" : "#fff",
-              color: filter === s ? "#fff" : "#000",
+              background: filter === s ? "#0f172a" : "#fff",
+              color: filter === s ? "#fff" : "#0f172a",
               cursor: "pointer",
             }}
           >
@@ -184,41 +130,6 @@ export default function AdminTickets() {
             <strong>Resolution:</strong>{" "}
             {t.resolutionNotes || "Not resolved yet"}
           </p>
-
-          {/* ASSIGN */}
-          <div style={{ marginTop: 10 }}>
-            <input
-              placeholder="Technician email"
-              value={technician}
-              onChange={(e) => setTechnician(e.target.value)}
-            />
-            <button onClick={(e) => handleAssign(t.id, e)}>
-              Assign
-            </button>
-          </div>
-
-          {/* UPDATE */}
-          <div style={{ marginTop: 10 }}>
-            <input
-              placeholder="Resolution notes"
-              value={resolution}
-              onChange={(e) => setResolution(e.target.value)}
-            />
-
-            <div style={{ marginTop: 6 }}>
-              <button onClick={(e) => handleUpdate(t.id, "IN_PROGRESS", e)}>
-                Start
-              </button>
-
-              <button onClick={(e) => handleUpdate(t.id, "RESOLVED", e)}>
-                Resolve
-              </button>
-
-              <button onClick={(e) => handleUpdate(t.id, "CLOSED", e)}>
-                Close
-              </button>
-            </div>
-          </div>
 
           {/* 🔥 DELETE BUTTON */}
           <button
