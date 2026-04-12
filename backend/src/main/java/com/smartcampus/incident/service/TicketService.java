@@ -1,10 +1,12 @@
 package com.smartcampus.incident.service;
 
-import com.smartcampus.incident.entity.Ticket;
-import com.smartcampus.incident.entity.TicketStatus;
+import com.smartcampus.incident.dto.TicketRequestDto;
+import com.smartcampus.incident.dto.TicketResponseDto;
+import com.smartcampus.incident.entity.*;
 import com.smartcampus.incident.repository.TicketRepository;
 
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
@@ -16,48 +18,110 @@ public class TicketService {
         this.ticketRepository = ticketRepository;
     }
 
-    public Ticket createTicket(Ticket ticket) {
+    // ✅ CREATE TICKET (DTO version)
+    public TicketResponseDto createTicket(TicketRequestDto dto) {
 
-        ticket.setStatus(TicketStatus.OPEN);
+        Ticket t = new Ticket();
 
-        return ticketRepository.save(ticket);
+        t.setTitle(dto.getTitle());
+        t.setDescription(dto.getDescription());
+        t.setCategory(TicketCategory.valueOf(dto.getCategory()));
+        t.setPriority(TicketPriority.valueOf(dto.getPriority()));
+        t.setLocation(TicketLocation.valueOf(dto.getLocation()));
+        t.setStatus(TicketStatus.OPEN);
+
+        ticketRepository.save(t);
+
+        return mapToDto(t);
     }
 
-    public List<Ticket> getAllTickets() {
+    // ✅ GET ALL (with optional filter later)
+    public List<TicketResponseDto> getAllTickets(TicketStatus status) {
 
-        return ticketRepository.findAll();
+        List<Ticket> tickets;
+
+        if (status != null) {
+            tickets = ticketRepository.findByStatus(status);
+        } else {
+            tickets = ticketRepository.findAll();
+        }
+
+        return tickets.stream().map(this::mapToDto).toList();
     }
 
-    public Ticket updateStatus(Long id, TicketStatus status) {
+    // ✅ GET MY TICKETS (later filter by user)
+    public List<TicketResponseDto> getMyTickets() {
+        List<Ticket> tickets = ticketRepository.findAll();
+        return tickets.stream().map(this::mapToDto).toList();
+    }
 
-        Ticket ticket = ticketRepository.findById(id).orElseThrow();
+    // ✅ GET SINGLE TICKET
+    public TicketResponseDto getTicket(Long id) {
+        Ticket t = ticketRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
+        return mapToDto(t);
+    }
+
+    // ✅ UPDATE STATUS + RESOLUTION
+    public TicketResponseDto updateStatus(Long id, TicketStatus status, String resolution) {
+
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
 
         ticket.setStatus(status);
 
-        return ticketRepository.save(ticket);
+        if (resolution != null && !resolution.isEmpty()) {
+            ticket.setResolutionNotes(resolution);
+        }
+
+        ticketRepository.save(ticket);
+
+        return mapToDto(ticket);
     }
 
-    public Ticket assignTechnician(Long ticketId, String technician) {
+    // ✅ ASSIGN TECHNICIAN
+    public TicketResponseDto assignTechnician(Long ticketId, String technician) {
 
-    Ticket ticket = ticketRepository.findById(ticketId)
-            .orElseThrow(() -> new RuntimeException("Ticket not found"));
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
 
-    ticket.setTechnicianAssigned(technician);
+        ticket.setTechnicianAssigned(technician);
+        ticket.setStatus(TicketStatus.IN_PROGRESS);
 
-    ticket.setStatus(TicketStatus.IN_PROGRESS);
+        ticketRepository.save(ticket);
 
-    return ticketRepository.save(ticket);
-}
+        return mapToDto(ticket);
+    }
 
-public Ticket updateTicket(Long id, TicketStatus status, String resolution) {
+    // ✅ UPDATE FULL TICKET
+    public TicketResponseDto updateTicket(Long id, TicketStatus status, String resolution) {
 
-    Ticket ticket = ticketRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Ticket not found"));
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
 
-    ticket.setStatus(status);
-    ticket.setResolutionNotes(resolution);
+        ticket.setStatus(status);
+        ticket.setResolutionNotes(resolution);
 
-    return ticketRepository.save(ticket);
-}
+        ticketRepository.save(ticket);
 
+        return mapToDto(ticket);
+    }
+
+    // ✅ DTO MAPPER (VERY IMPORTANT)
+    private TicketResponseDto mapToDto(Ticket t) {
+
+        TicketResponseDto dto = new TicketResponseDto();
+
+        dto.setId(t.getId());
+        dto.setTitle(t.getTitle());
+        dto.setDescription(t.getDescription());
+        dto.setTechnicianAssigned(t.getTechnicianAssigned());
+        dto.setResolutionNotes(t.getResolutionNotes());
+        dto.setStatus(t.getStatus());
+        dto.setCategory(t.getCategory());
+        dto.setPriority(t.getPriority());
+        dto.setLocation(t.getLocation());
+
+        return dto;
+    }
 }

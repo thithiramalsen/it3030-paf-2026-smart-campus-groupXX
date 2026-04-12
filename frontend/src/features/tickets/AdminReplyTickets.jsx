@@ -2,61 +2,89 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const STATUS_OPTIONS = ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED", "REJECTED"];
+const STATUS_OPTIONS = ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"];
 
 export default function AdminReplyTickets() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [ticket, setTicket] = useState(null);
+  const [comments, setComments] = useState([]);
+
   const [comment, setComment] = useState("");
   const [status, setStatus] = useState("");
   const [resolution, setResolution] = useState("");
 
   const [loading, setLoading] = useState(true);
 
-  // Load ticket
+  // 🔥 LOAD ALL DATA
   useEffect(() => {
-    fetchTicket();
-  }, []);
+    loadData();
+  }, [id]);
 
-  const fetchTicket = async () => {
+  const loadData = async () => {
     try {
-      const res = await axios.get(`http://localhost:8080/api/tickets/${id}`);
-      setTicket(res.data);
-      setStatus(res.data.status);
-    } catch {
+      setLoading(true);
+
+      const ticketRes = await axios.get(
+        `http://localhost:8080/api/tickets/${id}`
+      );
+
+      const commentRes = await axios.get(
+        `http://localhost:8080/api/comments/${id}`
+      );
+
+      setTicket(ticketRes.data);
+      setComments(commentRes.data);
+
+      setStatus(ticketRes.data.status);
+    } catch (err) {
+      console.error(err);
       alert("Failed to load ticket");
     } finally {
       setLoading(false);
     }
   };
 
-  // Add comment
+  // ✅ ADD COMMENT (FIXED API)
   const handleComment = async () => {
     if (!comment) return alert("Enter a comment");
 
     try {
-      await axios.post(`http://localhost:8080/api/tickets/${id}/comments`, {
-        message: comment,
-      });
+      await axios.post(
+        `http://localhost:8080/api/comments/${id}`,
+        null,
+        {
+          params: {
+            author: "Admin",
+            message: comment,
+          },
+        }
+      );
+
       setComment("");
-      fetchTicket();
-    } catch {
+      loadData();
+    } catch (err) {
+      console.error(err);
       alert("Failed to add comment");
     }
   };
 
-  // Update status + resolution
+  // ✅ UPDATE STATUS (DTO BASED)
   const handleUpdate = async () => {
     try {
-      await axios.put(`http://localhost:8080/api/tickets/${id}/status`, {
-        status,
-        resolutionNotes: resolution,
-      });
+      await axios.put(
+        `http://localhost:8080/api/tickets/${id}/status`,
+        {
+          status: status,
+          resolutionNotes: resolution,
+        }
+      );
+
       alert("Updated successfully");
       navigate("/admin/tickets");
-    } catch {
+    } catch (err) {
+      console.error(err);
       alert("Failed to update ticket");
     }
   };
@@ -66,6 +94,8 @@ export default function AdminReplyTickets() {
 
   return (
     <div style={{ maxWidth: 700, margin: "0 auto", padding: 20 }}>
+
+      {/* BACK BUTTON */}
       <button onClick={() => navigate("/admin/tickets")} style={{
         marginBottom: 16,
         padding: "6px 12px",
@@ -75,40 +105,41 @@ export default function AdminReplyTickets() {
         ← Back
       </button>
 
-      <h2>🎫 Ticket Details</h2>
+      <h2>🎫 Ticket Details & Reply</h2>
 
-      {/* Ticket Info */}
-      <div style={{ border: "1px solid #e5e7eb", padding: 16, borderRadius: 10 }}>
+      {/* 🔥 TICKET INFO */}
+      <div style={{
+        border: "1px solid #e5e7eb",
+        padding: 16,
+        borderRadius: 10
+      }}>
         <h3>{ticket.title}</h3>
         <p>{ticket.description}</p>
 
         <p>📌 {ticket.category} | ⚡ {ticket.priority} | 📍 {ticket.location}</p>
         <p>Status: <strong>{ticket.status}</strong></p>
 
-        {ticket.technicianAssigned && (
-          <p>👨‍🔧 {ticket.technicianAssigned}</p>
-        )}
+        <p>👨‍🔧 {ticket.technicianAssigned || "Not Assigned"}</p>
 
-        {ticket.resolutionNotes && (
-          <p style={{ color: "green" }}>
-            ✅ {ticket.resolutionNotes}
-          </p>
-        )}
+        <p style={{ color: "green" }}>
+          ✅ {ticket.resolutionNotes || "Not resolved"}
+        </p>
       </div>
 
-      {/* Comments Section */}
+      {/* 🔥 COMMENTS */}
       <div style={{ marginTop: 20 }}>
         <h3>💬 Comments</h3>
 
-        {ticket.comments?.length === 0 && <p>No comments yet.</p>}
+        {comments.length === 0 && <p>No comments yet.</p>}
 
-        {ticket.comments?.map((c) => (
+        {comments.map((c) => (
           <div key={c.id} style={{
             padding: 10,
             border: "1px solid #e5e7eb",
             borderRadius: 6,
             marginBottom: 6
           }}>
+            <strong>{c.author}</strong>
             <p>{c.message}</p>
           </div>
         ))}
@@ -133,20 +164,22 @@ export default function AdminReplyTickets() {
         </button>
       </div>
 
-      {/* Update Section */}
+      {/* 🔥 UPDATE */}
       <div style={{ marginTop: 20 }}>
         <h3>🔄 Update Ticket</h3>
 
-        <label>Status</label>
-        <select value={status} onChange={(e) => setStatus(e.target.value)}
-          style={{ display: "block", marginBottom: 10 }}>
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          style={{ marginBottom: 10 }}
+        >
           {STATUS_OPTIONS.map((s) => (
             <option key={s}>{s}</option>
           ))}
         </select>
 
-        <label>Resolution Notes</label>
         <textarea
+          placeholder="Resolution notes"
           value={resolution}
           onChange={(e) => setResolution(e.target.value)}
           rows={3}

@@ -5,20 +5,62 @@ import jakarta.validation.constraints.NotNull;
 
 public class TicketRequestDto {
 
-    @NotBlank
+    @NotBlank(message = "Title is required")
     private String title;
 
-    @NotBlank
+    @NotBlank(message = "Description is required")
     private String description;
 
-    @NotNull
+    @NotNull(message = "Category is required")
     private String category;
 
-    @NotNull
+    @NotNull(message = "Priority is required")
     private String priority;
 
-    @NotNull
+    @NotNull(message = "Location is required")
     private String location;
 
-    // getters + setters
+    // ✅ GETTERS
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    // ✅ SETTERS
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public void setPriority(String priority) {
+        this.priority = priority;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
 }
