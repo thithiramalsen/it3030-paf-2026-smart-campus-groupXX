@@ -17,6 +17,8 @@ import OAuthCallbackPage from '../pages/OAuthCallbackPage';
 import AddResource from '../pages/AddResource';
 import EditResource from '../pages/EditResource';
 import ResourceDetails from '../pages/ResourceDetails';
+import UserResourcesPage from '../pages/UserResourcesPage';
+import UserResourceDetail from '../pages/UserResourceDetail';
 
 function inShell(element) {
   return (
@@ -37,6 +39,7 @@ export default function AppRoutes() {
           <Route path="/profile" element={inShell(<ProfilePage />)} />
           <Route path="/notifications" element={inShell(<NotificationsPage />)} />
 
+           {/* USER dashboard */}
           <Route
             path="/dashboard"
             element={
@@ -48,6 +51,14 @@ export default function AppRoutes() {
             }
           />
 
+
+           {/* RESOURCES – USER VIEW */}
+          <Route path="/resources" element={inShell(<UserResourcesPage />)} />
+          <Route path="/resources/:id" element={inShell(<UserResourceDetail />)} />
+
+
+
+           {/* TECHNICIAN DASHBOARD */}
           <Route
             path="/technician/dashboard"
             element={
@@ -58,7 +69,7 @@ export default function AppRoutes() {
               </RoleGuard>
             }
           />
-
+           {/* MANAGER DASHBOARD */}
           <Route
             path="/manager/dashboard"
             element={
@@ -71,9 +82,8 @@ export default function AppRoutes() {
           />
 
 
-
-
-
+           
+           {/* MANAGER RESOURCE MANAGEMENT */}
           <Route
              path="/manager/resources/add"
              element={
@@ -107,7 +117,8 @@ export default function AppRoutes() {
             }
           />
 
-         
+
+            {/* Admin routes */}
           <Route
             path="/admin"
             element={
