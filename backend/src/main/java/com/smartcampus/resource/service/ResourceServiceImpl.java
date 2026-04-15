@@ -50,32 +50,67 @@ public class ResourceServiceImpl implements ResourceService {
                 .collect(Collectors.toList());
     }
 
+    
     @Override
     public ResourceResponseDTO createResource(ResourceRequestDTO request) {
-        Resource resource = Resource.builder()
-                .name(request.getName()).type(request.getType())
-                .capacity(request.getCapacity()).location(request.getLocation())
-                .status(request.getStatus()).openingTime(request.getOpeningTime())
-                .closingTime(request.getClosingTime()).imageUrl(request.getImageUrl())
-                .description(request.getDescription()).build();
-        return mapToResponseDTO(resourceRepository.save(resource));
+
+    boolean exists = resourceRepository.findAll().stream()
+            .anyMatch(r -> r.getName().equalsIgnoreCase(request.getName()));
+
+    if (exists) {
+        throw new RuntimeException("Resource with this name already exists");
     }
 
+    if (request.getOpeningTime().compareTo(request.getClosingTime()) >= 0) {
+        throw new RuntimeException("Opening time must be before closing time");
+    }
+
+    Resource resource = Resource.builder()
+            .name(request.getName())
+            .type(request.getType())
+            .capacity(request.getCapacity())
+            .location(request.getLocation())
+            .status(request.getStatus())
+            .openingTime(request.getOpeningTime())
+            .closingTime(request.getClosingTime())
+            .imageUrl(request.getImageUrl())
+            .description(request.getDescription())
+            .build();
+
+    return mapToResponseDTO(resourceRepository.save(resource));
+    }
+
+    
     @Override
     public ResourceResponseDTO updateResource(Long id, ResourceRequestDTO request) {
-        Resource existing = resourceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Resource not found with id: " + id));
-        existing.setName(request.getName());
-        existing.setType(request.getType());
-        existing.setCapacity(request.getCapacity());
-        existing.setLocation(request.getLocation());
-        existing.setStatus(request.getStatus());
-        existing.setOpeningTime(request.getOpeningTime());
-        existing.setClosingTime(request.getClosingTime());
-        existing.setImageUrl(request.getImageUrl());
-        existing.setDescription(request.getDescription());
-        return mapToResponseDTO(resourceRepository.save(existing));
+
+    Resource existing = resourceRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Resource not found"));
+
+    boolean exists = resourceRepository.findAll().stream()
+            .anyMatch(r -> !r.getId().equals(id)
+                    && r.getName().equalsIgnoreCase(request.getName()));
+
+    if (exists) {
+        throw new RuntimeException("Resource with this name already exists");
     }
+
+    if (request.getOpeningTime().compareTo(request.getClosingTime()) >= 0) {
+        throw new RuntimeException("Opening time must be before closing time");
+    }
+
+    existing.setName(request.getName());
+    existing.setType(request.getType());
+    existing.setCapacity(request.getCapacity());
+    existing.setLocation(request.getLocation());
+    existing.setStatus(request.getStatus());
+    existing.setOpeningTime(request.getOpeningTime());
+    existing.setClosingTime(request.getClosingTime());
+    existing.setImageUrl(request.getImageUrl());
+    existing.setDescription(request.getDescription());
+
+    return mapToResponseDTO(resourceRepository.save(existing));
+   }
 
     @Override
     public void deleteResource(Long id) {

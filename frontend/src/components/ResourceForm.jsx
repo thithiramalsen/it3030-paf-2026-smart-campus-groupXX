@@ -48,21 +48,52 @@ export default function ResourceForm({
     }, [initialData]);
 
     const validate = () => {
-        const newErrors = {};
-        if (!form.name.trim())     newErrors.name     = 'Resource name is required';
-        if (!form.type)            newErrors.type     = 'Type is required';
-        if (!form.capacity)        newErrors.capacity = 'Capacity is required';
-        if (form.capacity < 1)     newErrors.capacity = 'Capacity must be at least 1';
-        if (!form.location.trim()) newErrors.location = 'Location is required';
-        if (!form.status)          newErrors.status   = 'Status is required';
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+    const newErrors = {};
+
+    if (!form.name.trim()) {
+        newErrors.name = 'Resource name is required';
+    }
+
+    if (!form.type) {
+        newErrors.type = 'Type is required';
+    }
+
+    if (!form.capacity) {
+        newErrors.capacity = 'Capacity is required';
+    } else if (isNaN(form.capacity) || Number(form.capacity) < 1) {
+        newErrors.capacity = 'Capacity must be at least 1';
+    }
+
+    if (!form.location.trim()) {
+        newErrors.location = 'Location is required';
+    }
+
+    if (!form.status) {
+        newErrors.status = 'Status is required';
+    }
+
+    // 🔥 ADD THIS (TIME VALIDATION)
+    if (form.openingTime && form.closingTime) {
+        if (form.openingTime >= form.closingTime) {
+            newErrors.time = 'Opening time must be earlier than closing time';
+        }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
     };
 
+   
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setForm(prev => ({ ...prev, [name]: value }));
-        if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+
+    // Clear field errors + time error
+    setErrors(prev => ({
+        ...prev,
+        [name]: '',
+        time: ''
+    }));
     };
 
     const handleFileUpload = async (e) => {
@@ -112,7 +143,7 @@ export default function ResourceForm({
     };
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} autoComplete="off">
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
 
                 {/* Column 1 — Resource Information */}
@@ -210,6 +241,9 @@ export default function ResourceForm({
                             style={inputStyle}
                         />
                     </div>
+                    {errors.time && (
+                       <span style={errorStyle}>{errors.time}</span>
+                    )}
 
                     <div style={fieldStyle}>
                         <label style={labelStyle}>Status <span style={{ color: '#a32d2d' }}>*</span></label>
