@@ -19,7 +19,7 @@ export default function HomePage() {
       <h1>Welcome, {user?.name}</h1>
       <p className="muted">Role: {user?.role} | Status: {user?.accountStatus || 'ACTIVE'}</p>
       <div className="card-grid four">
-        <Card title="Resources" body="View and request campus equipment and spaces." />
+        <Card title="Resources" body="View and request campus equipment and spaces." onClick={() => navigate('/resources')} />
         <Card
           title="Bookings"
           body="Track booking slots and availability."
