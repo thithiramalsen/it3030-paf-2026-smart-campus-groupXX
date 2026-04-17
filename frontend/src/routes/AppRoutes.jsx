@@ -13,6 +13,16 @@ import ManagerDashboard from '../pages/ManagerDashboard';
 import AdminDashboard from '../pages/AdminDashboard';
 import AdminUsersPage from '../pages/AdminUsersPage';
 import OAuthCallbackPage from '../pages/OAuthCallbackPage';
+import BookingForm from '../features/booking/BookingForm';
+import MyBookings from '../features/booking/MyBookings';
+import AdminBookings from '../features/booking/AdminBookings';
+
+import AddResource from '../pages/AddResource';
+import EditResource from '../pages/EditResource';
+import ResourceDetails from '../pages/ResourceDetails';
+import ResourceManagement from '../pages/ResourceManagement';
+import UserResourcesPage from '../pages/UserResourcesPage';
+import UserResourceDetail from '../pages/UserResourceDetail';
 
 function inShell(element) {
   return (
@@ -33,6 +43,20 @@ export default function AppRoutes() {
           <Route path="/profile" element={inShell(<ProfilePage />)} />
           <Route path="/notifications" element={inShell(<NotificationsPage />)} />
 
+          <Route path="/bookings/new" element={inShell(<BookingForm />)} />
+          <Route path="/bookings/my" element={inShell(<MyBookings />)} />
+          <Route
+            path="/admin/bookings"
+            element={
+              <RoleGuard allowedRoles={['ADMIN']}>
+                <ShellLayout>
+                  <AdminBookings />
+                </ShellLayout>
+              </RoleGuard>
+            }
+          />
+
+          {/* USER dashboard */}
           <Route
             path="/dashboard"
             element={
@@ -44,6 +68,14 @@ export default function AppRoutes() {
             }
           />
 
+
+           {/* RESOURCES – USER VIEW */}
+          <Route path="/resources" element={inShell(<UserResourcesPage />)} />
+          <Route path="/resources/:id" element={inShell(<UserResourceDetail />)} />
+
+
+
+           {/* TECHNICIAN DASHBOARD */}
           <Route
             path="/technician/dashboard"
             element={
@@ -54,7 +86,7 @@ export default function AppRoutes() {
               </RoleGuard>
             }
           />
-
+           {/* MANAGER DASHBOARD */}
           <Route
             path="/manager/dashboard"
             element={
@@ -66,6 +98,55 @@ export default function AppRoutes() {
             }
           />
 
+
+           
+           {/* MANAGER RESOURCE MANAGEMENT */}
+          <Route
+            path="/manager/resources"
+            element={
+              <RoleGuard allowedRoles={['MANAGER', 'ADMIN']}>
+                <ShellLayout>
+                  <ResourceManagement />
+                </ShellLayout>
+              </RoleGuard>
+            }
+          />
+
+          <Route
+             path="/manager/resources/add"
+             element={
+              <RoleGuard allowedRoles={['MANAGER', 'ADMIN']}>
+                <ShellLayout>
+                    <AddResource />
+                </ShellLayout>
+              </RoleGuard>
+            }
+          />
+
+          <Route
+             path="/manager/resources/edit/:id"
+             element={
+              <RoleGuard allowedRoles={['MANAGER', 'ADMIN']}>
+                 <ShellLayout>
+                     <EditResource />
+                 </ShellLayout>
+              </RoleGuard>
+            }
+          />
+
+          <Route
+             path="/manager/resources/:id"
+             element={
+                <RoleGuard allowedRoles={['MANAGER', 'ADMIN']}>
+                  <ShellLayout>
+                     <ResourceDetails />
+                  </ShellLayout>
+                </RoleGuard>
+            }
+          />
+
+
+            {/* Admin routes */}
           <Route
             path="/admin"
             element={

@@ -1,0 +1,433 @@
+
+import { useState, useEffect, useRef } from 'react';
+
+const CLOUDINARY_CLOUD_NAME = 'dvohofunp';
+const CLOUDINARY_UPLOAD_PRESET = 'smart_campus_upload';
+
+const RESOURCE_TYPES = [
+    { value: 'LECTURE_HALL', label: 'Lecture Hall' },
+    { value: 'LAB', label: 'Lab' },
+    { value: 'MEETING_ROOM', label: 'Meeting Room' },
+    { value: 'EQUIPMENT', label: 'Equipment' },
+];
+
+const RESOURCE_STATUSES = [
+    { value: 'ACTIVE', label: 'Active' },
+    { value: 'OUT_OF_SERVICE', label: 'Out of Service' },
+];
+
+export default function ResourceForm({
+    initialData = {},
+    onSubmit,
+    onCancel,
+    loading = false,
+    submitLabel = 'Save Resource',
+}) {
+    const [form, setForm] = useState({
+        name: '',
+        type: 'LECTURE_HALL',
+        capacity: '',
+        location: '',
+        status: 'ACTIVE',
+        openingTime: '08:00',
+        closingTime: '18:00',
+        imageUrl: '',
+        description: '',
+        ...initialData,
+    });
+
+    const [errors, setErrors]         = useState({});
+    const [uploading, setUploading]   = useState(false);
+    const [uploadError, setUploadError] = useState(null);
+    const fileInputRef                = useRef(null);
+
+    useEffect(() => {
+        if (initialData && Object.keys(initialData).length > 0) {
+            setForm(prev => ({ ...prev, ...initialData }));
+        }
+    }, [initialData]);
+
+    const validate = () => {
+    const newErrors = {};
+
+    if (!form.name.trim()) {
+        newErrors.name = 'Resource name is required';
+    }
+
+    if (!form.type) {
+        newErrors.type = 'Type is required';
+    }
+
+    if (!form.capacity) {
+        newErrors.capacity = 'Capacity is required';
+    } else if (isNaN(form.capacity) || Number(form.capacity) < 1) {
+        newErrors.capacity = 'Capacity must be at least 1';
+    }
+
+    if (!form.location.trim()) {
+        newErrors.location = 'Location is required';
+    }
+
+    if (!form.status) {
+        newErrors.status = 'Status is required';
+    }
+
+    // 🔥 ADD THIS (TIME VALIDATION)
+    if (form.openingTime && form.closingTime) {
+        if (form.openingTime >= form.closingTime) {
+            newErrors.time = 'Opening time must be earlier than closing time';
+        }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+    };
+
+   
+    const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+
+    // Clear field errors + time error
+    setErrors(prev => ({
+        ...prev,
+        [name]: '',
+        time: ''
+    }));
+    };
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            setUploadError('Please select an image file (PNG, JPG, etc.)');
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            setUploadError('Image must be less than 5MB');
+            return;
+        }
+
+        setUploading(true);
+        setUploadError(null);
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+            const response = await fetch(
+                `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+                { method: 'POST', body: formData }
+            );
+
+            if (!response.ok) throw new Error('Upload failed');
+
+            const data = await response.json();
+            setForm(prev => ({ ...prev, imageUrl: data.secure_url }));
+        } catch (err) {
+            setUploadError('Failed to upload image. Please try again.');
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!validate()) return;
+        onSubmit({ ...form, capacity: parseInt(form.capacity) });
+    };
+
+    return (
+        <form onSubmit={handleSubmit} autoComplete="off">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
+
+                {/* Column 1 — Resource Information */}
+                <div style={cardStyle}>
+                    <div style={cardTitleStyle}>Resource Information</div>
+
+                    <div style={fieldStyle}>
+                        <label style={labelStyle}>Resource Name <span style={{ color: '#a32d2d' }}>*</span></label>
+                        <input
+                            name="name"
+                            value={form.name}
+                            onChange={handleChange}
+                            placeholder="e.g. Lecture Hall B"
+                            style={{ ...inputStyle, borderColor: errors.name ? '#f09595' : '#ddd' }}
+                        />
+                        {errors.name && <span style={errorStyle}>{errors.name}</span>}
+                    </div>
+
+                    <div style={fieldStyle}>
+                        <label style={labelStyle}>Resource Type <span style={{ color: '#a32d2d' }}>*</span></label>
+                        <select
+                            name="type"
+                            value={form.type}
+                            onChange={handleChange}
+                            style={{ ...inputStyle, borderColor: errors.type ? '#f09595' : '#ddd' }}
+                        >
+                            {RESOURCE_TYPES.map(t => (
+                                <option key={t.value} value={t.value}>{t.label}</option>
+                            ))}
+                        </select>
+                        {errors.type && <span style={errorStyle}>{errors.type}</span>}
+                    </div>
+
+                    <div style={fieldStyle}>
+                        <label style={labelStyle}>Capacity <span style={{ color: '#a32d2d' }}>*</span></label>
+                        <input
+                            name="capacity"
+                            type="number"
+                            min="1"
+                            value={form.capacity}
+                            onChange={handleChange}
+                            placeholder="e.g. 120"
+                            style={{ ...inputStyle, borderColor: errors.capacity ? '#f09595' : '#ddd' }}
+                        />
+                        {errors.capacity && <span style={errorStyle}>{errors.capacity}</span>}
+                    </div>
+
+                    <div style={fieldStyle}>
+                        <label style={labelStyle}>Location <span style={{ color: '#a32d2d' }}>*</span></label>
+                        <input
+                            name="location"
+                            value={form.location}
+                            onChange={handleChange}
+                            placeholder="e.g. Building A - Floor 2"
+                            style={{ ...inputStyle, borderColor: errors.location ? '#f09595' : '#ddd' }}
+                        />
+                        {errors.location && <span style={errorStyle}>{errors.location}</span>}
+                    </div>
+
+                    <div style={fieldStyle}>
+                        <label style={labelStyle}>Description</label>
+                        <textarea
+                            name="description"
+                            value={form.description}
+                            onChange={handleChange}
+                            placeholder="Brief description of the resource..."
+                            rows={3}
+                            style={{ ...inputStyle, resize: 'vertical' }}
+                        />
+                    </div>
+                </div>
+
+                {/* Column 2 — Availability */}
+                <div style={cardStyle}>
+                    <div style={cardTitleStyle}>Availability</div>
+
+                    <div style={fieldStyle}>
+                        <label style={labelStyle}>Opening Time</label>
+                        <input
+                            name="openingTime"
+                            type="time"
+                            value={form.openingTime}
+                            onChange={handleChange}
+                            style={inputStyle}
+                        />
+                    </div>
+
+                    <div style={fieldStyle}>
+                        <label style={labelStyle}>Closing Time</label>
+                        <input
+                            name="closingTime"
+                            type="time"
+                            value={form.closingTime}
+                            onChange={handleChange}
+                            style={inputStyle}
+                        />
+                    </div>
+                    {errors.time && (
+                       <span style={errorStyle}>{errors.time}</span>
+                    )}
+
+                    <div style={fieldStyle}>
+                        <label style={labelStyle}>Status <span style={{ color: '#a32d2d' }}>*</span></label>
+                        <select
+                            name="status"
+                            value={form.status}
+                            onChange={handleChange}
+                            style={{ ...inputStyle, borderColor: errors.status ? '#f09595' : '#ddd' }}
+                        >
+                            {RESOURCE_STATUSES.map(s => (
+                                <option key={s.value} value={s.value}>{s.label}</option>
+                            ))}
+                        </select>
+                        {errors.status && <span style={errorStyle}>{errors.status}</span>}
+                    </div>
+                </div>
+
+                {/* Column 3 — Image Upload */}
+                <div style={cardStyle}>
+                    <div style={cardTitleStyle}>
+                        {submitLabel === 'Update Resource' ? 'Current Image' : 'Upload Image (Optional)'}
+                    </div>
+
+                    {/* Image preview */}
+                    {form.imageUrl ? (
+                        <div style={{ marginBottom: 12 }}>
+                            <img
+                                src={form.imageUrl}
+                                alt="Preview"
+                                style={{
+                                    width: '100%', height: 160,
+                                    objectFit: 'cover', borderRadius: 8,
+                                    border: '0.5px solid #e0e0e0',
+                                }}
+                                onError={e => e.target.style.display = 'none'}
+                            />
+                        </div>
+                    ) : (
+                        <div
+                            onClick={() => fileInputRef.current?.click()}
+                            style={{
+                                marginBottom: 12, height: 160,
+                                border: '1.5px dashed #ddd', borderRadius: 8,
+                                display: 'flex', flexDirection: 'column',
+                                alignItems: 'center', justifyContent: 'center',
+                                color: '#aaa', cursor: 'pointer',
+                                transition: 'border-color 0.2s',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.borderColor = '#1a9a72'}
+                            onMouseLeave={e => e.currentTarget.style.borderColor = '#ddd'}
+                        >
+                            {uploading ? (
+                                <>
+                                    <div style={{ fontSize: 28, marginBottom: 8 }}>⏳</div>
+                                    <div style={{ fontSize: 12 }}>Uploading...</div>
+                                </>
+                            ) : (
+                                <>
+                                    <div style={{ fontSize: 28, marginBottom: 8 }}>📁</div>
+                                    <div style={{ fontSize: 12, fontWeight: 500, color: '#555' }}>Click to browse files</div>
+                                    <div style={{ fontSize: 11, marginTop: 4 }}>PNG, JPG up to 5MB</div>
+                                </>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Hidden file input */}
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                        style={{ display: 'none' }}
+                    />
+
+                    {/* Upload error */}
+                    {uploadError && (
+                        <div style={{ fontSize: 11, color: '#a32d2d', marginBottom: 8 }}>
+                            {uploadError}
+                        </div>
+                    )}
+
+                    {/* Upload button */}
+                    <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading}
+                        style={{
+                            width: '100%', padding: '8px',
+                            fontSize: 12, borderRadius: 7, cursor: uploading ? 'not-allowed' : 'pointer',
+                            border: '0.5px solid #1a9a72', background: uploading ? '#f0f0f0' : '#e1f5ee',
+                            color: uploading ? '#aaa' : '#0f6e56', fontWeight: 500,
+                            marginBottom: 10,
+                        }}
+                    >
+                        {uploading ? 'Uploading...' : '📁 Browse & Upload Image'}
+                    </button>
+
+                    {/* OR divider */}
+                    <div style={{
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        margin: '8px 0', color: '#aaa', fontSize: 11,
+                    }}>
+                        <div style={{ flex: 1, height: '0.5px', background: '#e0e0e0' }} />
+                        OR paste URL
+                        <div style={{ flex: 1, height: '0.5px', background: '#e0e0e0' }} />
+                    </div>
+
+                    {/* URL input */}
+                    <input
+                        name="imageUrl"
+                        value={form.imageUrl}
+                        onChange={handleChange}
+                        placeholder="https://example.com/image.jpg"
+                        style={inputStyle}
+                    />
+
+                    {/* Change image button (edit mode) */}
+                    {form.imageUrl && submitLabel === 'Update Resource' && (
+                        <button
+                            type="button"
+                            style={{
+                                marginTop: 8, width: '100%', padding: '6px',
+                                fontSize: 12, borderRadius: 6, cursor: 'pointer',
+                                border: '0.5px solid #ddd', background: '#fafafa',
+                                color: '#555',
+                            }}
+                            onClick={() => setForm(prev => ({ ...prev, imageUrl: '' }))}
+                        >
+                            Change Image
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            {/* Action buttons */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 24 }}>
+                <button
+                    type="button"
+                    onClick={onCancel}
+                    style={{
+                        padding: '9px 24px', fontSize: 13, borderRadius: 8,
+                        border: '0.5px solid #ddd', background: '#fff',
+                        cursor: 'pointer', color: '#555',
+                    }}
+                >
+                    Cancel
+                </button>
+                <button
+                    type="submit"
+                    disabled={loading || uploading}
+                    style={{
+                        padding: '9px 24px', fontSize: 13, borderRadius: 8,
+                        border: 'none', background: (loading || uploading) ? '#aaa' : '#1a9a72',
+                        color: '#fff', cursor: (loading || uploading) ? 'not-allowed' : 'pointer',
+                        fontWeight: 500,
+                    }}
+                >
+                    {loading ? 'Saving...' : submitLabel}
+                </button>
+            </div>
+        </form>
+    );
+}
+
+const cardStyle = {
+    background: '#fff', border: '0.5px solid #e0e0e0',
+    borderRadius: 10, padding: '20px',
+};
+const cardTitleStyle = {
+    fontSize: 14, fontWeight: 500, color: '#1a1a1a',
+    marginBottom: 16, paddingBottom: 10,
+    borderBottom: '0.5px solid #f0f0f0',
+};
+const fieldStyle = { marginBottom: 14 };
+const labelStyle = {
+    display: 'block', fontSize: 12, color: '#666',
+    marginBottom: 5, fontWeight: 500,
+};
+const inputStyle = {
+    width: '100%', padding: '8px 10px', borderRadius: 7,
+    border: '0.5px solid #ddd', fontSize: 13,
+    background: '#fafafa', color: '#1a1a1a', boxSizing: 'border-box',
+};
+const errorStyle = {
+    fontSize: 11, color: '#a32d2d', marginTop: 3, display: 'block',
+};
