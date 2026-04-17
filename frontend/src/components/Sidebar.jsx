@@ -12,6 +12,7 @@ export default function Sidebar() {
 
   const common = [
     item('/', 'Home'),
+    item('/resources', 'Resources'),
     item('/profile', 'Profile'),
     item('/notifications', 'Notifications')
   ];
@@ -28,6 +29,7 @@ export default function Sidebar() {
 
   if (user?.role === 'MANAGER' || user?.role === 'ADMIN') {
     roleSpecific.push(item('/manager/dashboard', 'Manager Dashboard'));
+    roleSpecific.push(item('/manager/resources', 'Manage Resources'));
   }
 
   if (user?.role === 'ADMIN') {
@@ -47,8 +49,8 @@ export default function Sidebar() {
 
           const isActive =
             location.pathname === nav.path ||
-            (nav.path === '/' && location.pathname.startsWith('/resources')) ||
-            (nav.path === '/manager/dashboard' && location.pathname.startsWith('/manager'));
+            (nav.path === '/resources' && location.pathname.startsWith('/resources/')) ||
+            (nav.path === '/manager/resources' && location.pathname.startsWith('/manager/resources/'));
 
           return (
             <Link

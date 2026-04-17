@@ -20,6 +20,7 @@ import AdminBookings from '../features/booking/AdminBookings';
 import AddResource from '../pages/AddResource';
 import EditResource from '../pages/EditResource';
 import ResourceDetails from '../pages/ResourceDetails';
+import ResourceManagement from '../pages/ResourceManagement';
 import UserResourcesPage from '../pages/UserResourcesPage';
 import UserResourceDetail from '../pages/UserResourceDetail';
 
@@ -100,6 +101,17 @@ export default function AppRoutes() {
 
            
            {/* MANAGER RESOURCE MANAGEMENT */}
+          <Route
+            path="/manager/resources"
+            element={
+              <RoleGuard allowedRoles={['MANAGER', 'ADMIN']}>
+                <ShellLayout>
+                  <ResourceManagement />
+                </ShellLayout>
+              </RoleGuard>
+            }
+          />
+
           <Route
              path="/manager/resources/add"
              element={

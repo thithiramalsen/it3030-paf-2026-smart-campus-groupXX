@@ -26,7 +26,11 @@ export default function UserDashboard() {
 
       {tab === 'overview' && (
         <div className="card-grid two">
-          <Panel title="Resources" text="Browse and request resources." />
+          <Panel
+            title="Resources"
+            text="Browse and request resources."
+            onClick={() => setTab('resources')}
+          />
           <Panel
             title="Bookings"
             text="Manage your reservations."
@@ -72,7 +76,43 @@ export default function UserDashboard() {
         </div>
       )}
 
-      {tab !== 'overview' && tab !== 'bookings' && (
+      {tab === 'resources' && (
+        <div>
+          <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+            <button
+              onClick={() => navigate('/resources')}
+              style={{
+                padding: '10px 20px',
+                background: '#1a9a72',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 8,
+                cursor: 'pointer',
+                fontSize: 15,
+              }}
+            >
+              Browse Resources
+            </button>
+            <button
+              onClick={() => navigate('/bookings/new')}
+              style={{
+                padding: '10px 20px',
+                background: '#fff',
+                color: '#1a9a72',
+                border: '1px solid #1a9a72',
+                borderRadius: 8,
+                cursor: 'pointer',
+                fontSize: 15,
+              }}
+            >
+              Book a Resource
+            </button>
+          </div>
+          <article className="card">Choose a resource to view details and start booking.</article>
+        </div>
+      )}
+
+      {tab !== 'overview' && tab !== 'bookings' && tab !== 'resources' && (
         <article className="card">Feature module for {tab} is ready for backend integration.</article>
       )}
     </div>
