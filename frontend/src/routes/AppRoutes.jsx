@@ -26,6 +26,13 @@ import AdminTickets from '../features/tickets/AdminTickets';
 import AdminReplyTickets from '../features/tickets/AdminReplyTickets';
 import TicketDetails from '../features/tickets/TicketDetails';
 
+import AddResource from '../pages/AddResource';
+import EditResource from '../pages/EditResource';
+import ResourceDetails from '../pages/ResourceDetails';
+import ResourceManagement from '../pages/ResourceManagement';
+import UserResourcesPage from '../pages/UserResourcesPage';
+import UserResourceDetail from '../pages/UserResourceDetail';
+
 function inShell(element) {
   return (
     <ProtectedRoute>
@@ -73,6 +80,7 @@ export default function AppRoutes() {
           />
 
           {/* DASHBOARDS */}
+          {/* USER dashboard */}
           <Route
             path="/dashboard"
             element={
@@ -84,6 +92,14 @@ export default function AppRoutes() {
             }
           />
 
+
+           {/* RESOURCES – USER VIEW */}
+          <Route path="/resources" element={inShell(<UserResourcesPage />)} />
+          <Route path="/resources/:id" element={inShell(<UserResourceDetail />)} />
+
+
+
+           {/* TECHNICIAN DASHBOARD */}
           <Route
             path="/technician/dashboard"
             element={
@@ -94,7 +110,7 @@ export default function AppRoutes() {
               </RoleGuard>
             }
           />
-
+           {/* MANAGER DASHBOARD */}
           <Route
             path="/manager/dashboard"
             element={
@@ -107,6 +123,55 @@ export default function AppRoutes() {
           />
 
           {/* ADMIN */}
+
+           
+           {/* MANAGER RESOURCE MANAGEMENT */}
+          <Route
+            path="/manager/resources"
+            element={
+              <RoleGuard allowedRoles={['MANAGER', 'ADMIN']}>
+                <ShellLayout>
+                  <ResourceManagement />
+                </ShellLayout>
+              </RoleGuard>
+            }
+          />
+
+          <Route
+             path="/manager/resources/add"
+             element={
+              <RoleGuard allowedRoles={['MANAGER', 'ADMIN']}>
+                <ShellLayout>
+                    <AddResource />
+                </ShellLayout>
+              </RoleGuard>
+            }
+          />
+
+          <Route
+             path="/manager/resources/edit/:id"
+             element={
+              <RoleGuard allowedRoles={['MANAGER', 'ADMIN']}>
+                 <ShellLayout>
+                     <EditResource />
+                 </ShellLayout>
+              </RoleGuard>
+            }
+          />
+
+          <Route
+             path="/manager/resources/:id"
+             element={
+                <RoleGuard allowedRoles={['MANAGER', 'ADMIN']}>
+                  <ShellLayout>
+                     <ResourceDetails />
+                  </ShellLayout>
+                </RoleGuard>
+            }
+          />
+
+
+            {/* Admin routes */}
           <Route
             path="/admin"
             element={
