@@ -45,6 +45,11 @@ export default function AdminDashboard() {
         <p>Review account approvals and role assignments.</p>
         <Link className="text-link" to="/admin/users">Go to user management</Link>
       </article>
+      <article className="card">
+        <h3>Booking management</h3>
+        <p>Review, approve, or reject booking requests from users.</p>
+        <Link className="text-link" to="/admin/bookings">Go to booking management</Link>
+      </article>
     </div>
   );
 }

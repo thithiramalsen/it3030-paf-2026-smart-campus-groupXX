@@ -1,6 +1,14 @@
-
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/AuthContext';
+import { useNavigate } from 'react-router-dom';
+
+function Card({ title, body, onClick }) {
+  return (
+    <article className="card" onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default' }}>
+      <h3>{title}</h3>
+      <p>{body}</p>
+    </article>
+  );
+}
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -8,34 +16,17 @@ export default function HomePage() {
 
   return (
     <div className="page-block">
-      <h1>Welcome, {user?.fullName}</h1>
+      <h1>Welcome, {user?.name}</h1>
       <p className="muted">Role: {user?.role} | Status: {user?.accountStatus || 'ACTIVE'}</p>
       <div className="card-grid four">
-
-        <article
-          className="card"
-          onClick={() => navigate('/resources')}
-          style={{ cursor: 'pointer' }}
-        >
-          <h3>Resources</h3>
-          <p>View and request campus equipment and spaces.</p>
-        </article>
-
-        <article className="card" style={{ cursor: 'pointer' }}>
-          <h3>Bookings</h3>
-          <p>Track booking slots and availability.</p>
-        </article>
-
-        <article className="card" style={{ cursor: 'pointer' }}>
-          <h3>Tickets</h3>
-          <p>Submit and monitor support requests.</p>
-        </article>
-
-        <article className="card" style={{ cursor: 'pointer' }}>
-          <h3>Announcements</h3>
-          <p>Stay updated on notices and events.</p>
-        </article>
-
+        <Card title="Resources" body="View and request campus equipment and spaces." onClick={() => navigate('/resources')} />
+        <Card
+          title="Bookings"
+          body="Track booking slots and availability."
+          onClick={() => navigate('/bookings/my')}
+        />
+        <Card title="Tickets" body="Submit and monitor support requests." />
+        <Card title="Announcements" body="Stay updated on notices and events." />
       </div>
     </div>
   );

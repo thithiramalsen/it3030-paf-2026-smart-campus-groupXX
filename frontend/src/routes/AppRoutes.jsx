@@ -13,6 +13,9 @@ import ManagerDashboard from '../pages/ManagerDashboard';
 import AdminDashboard from '../pages/AdminDashboard';
 import AdminUsersPage from '../pages/AdminUsersPage';
 import OAuthCallbackPage from '../pages/OAuthCallbackPage';
+import BookingForm from '../features/booking/BookingForm';
+import MyBookings from '../features/booking/MyBookings';
+import AdminBookings from '../features/booking/AdminBookings';
 
 import AddResource from '../pages/AddResource';
 import EditResource from '../pages/EditResource';
@@ -39,7 +42,20 @@ export default function AppRoutes() {
           <Route path="/profile" element={inShell(<ProfilePage />)} />
           <Route path="/notifications" element={inShell(<NotificationsPage />)} />
 
-           {/* USER dashboard */}
+          <Route path="/bookings/new" element={inShell(<BookingForm />)} />
+          <Route path="/bookings/my" element={inShell(<MyBookings />)} />
+          <Route
+            path="/admin/bookings"
+            element={
+              <RoleGuard allowedRoles={['ADMIN']}>
+                <ShellLayout>
+                  <AdminBookings />
+                </ShellLayout>
+              </RoleGuard>
+            }
+          />
+
+          {/* USER dashboard */}
           <Route
             path="/dashboard"
             element={
