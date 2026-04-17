@@ -162,7 +162,10 @@ export default function AdminReplyTickets() {
         <h3>{ticket.title}</h3>
         <p>{ticket.description}</p>
 
-        <p>📌 {ticket.category} | ⚡ {ticket.priority} | 📍 {ticket.location}</p>
+        <p>
+          📌 {ticket.category} | ⚡ {ticket.priority} | 📍 {ticket.resourceName || "-"}
+          {ticket.resourceLocation ? ` (${ticket.resourceLocation})` : ""}
+        </p>
         <p>Status: <strong>{ticket.status}</strong></p>
 
         <p>👨‍🔧 {ticket.technicianAssigned || "Not Assigned"}</p>

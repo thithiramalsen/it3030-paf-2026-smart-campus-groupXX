@@ -13,7 +13,9 @@ public class TicketResponseDto {
     private TicketStatus status;
     private TicketCategory category;
     private TicketPriority priority;
-    private TicketLocation location;
+    private Long resourceId;
+    private String resourceName;
+    private String resourceLocation;
 
     // ✅ GETTERS
 
@@ -49,8 +51,16 @@ public class TicketResponseDto {
         return priority;
     }
 
-    public TicketLocation getLocation() {
-        return location;
+    public Long getResourceId() {
+        return resourceId;
+    }
+
+    public String getResourceName() {
+        return resourceName;
+    }
+
+    public String getResourceLocation() {
+        return resourceLocation;
     }
 
     // ✅ SETTERS
@@ -87,7 +97,15 @@ public class TicketResponseDto {
         this.priority = priority;
     }
 
-    public void setLocation(TicketLocation location) {
-        this.location = location;
+    public void setResourceId(Long resourceId) {
+        this.resourceId = resourceId;
+    }
+
+    public void setResourceName(String resourceName) {
+        this.resourceName = resourceName;
+    }
+
+    public void setResourceLocation(String resourceLocation) {
+        this.resourceLocation = resourceLocation;
     }
 }

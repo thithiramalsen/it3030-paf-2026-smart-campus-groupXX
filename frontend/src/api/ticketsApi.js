@@ -40,11 +40,7 @@ export const uploadAttachment = (ticketId, file) => {
   const formData = new FormData();
   formData.append("file", file);
 
-  return httpClient.post(`/api/attachments/${ticketId}`, formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  return httpClient.post(`/api/attachments/${ticketId}`, formData);
 };
 
 // ✅ GET ATTACHMENTS

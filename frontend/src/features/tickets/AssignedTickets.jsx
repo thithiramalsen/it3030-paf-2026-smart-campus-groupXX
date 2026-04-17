@@ -23,18 +23,22 @@ export default function AssignedTickets() {
 
   if (loading) return <p>Loading assigned tickets...</p>;
 
+  const visibleTickets = tickets.filter(
+    (ticket) => ticket.status !== "RESOLVED" && ticket.status !== "CLOSED"
+  );
+
   return (
     <div className="page-block">
       <div className="inline-actions spread">
         <h2>Assigned Tickets</h2>
-        <span className="muted">{tickets.length} active</span>
+        <span className="muted">{visibleTickets.length} active</span>
       </div>
 
       {error && <p className="muted">{error}</p>}
-      {tickets.length === 0 && <p className="muted">No tickets assigned yet.</p>}
+      {visibleTickets.length === 0 && <p className="muted">No tickets assigned yet.</p>}
 
       <div className="stack-list">
-        {tickets.map((ticket) => (
+        {visibleTickets.map((ticket) => (
           <article
             key={ticket.id}
             className="card"
@@ -48,7 +52,10 @@ export default function AssignedTickets() {
             <p className="muted">{ticket.description}</p>
             <div className="inline-actions">
               <span><strong>Priority:</strong> {ticket.priority}</span>
-              <span><strong>Location:</strong> {ticket.location}</span>
+              <span>
+                <strong>Resource:</strong> {ticket.resourceName || "-"}
+                {ticket.resourceLocation ? ` (${ticket.resourceLocation})` : ""}
+              </span>
             </div>
           </article>
         ))}

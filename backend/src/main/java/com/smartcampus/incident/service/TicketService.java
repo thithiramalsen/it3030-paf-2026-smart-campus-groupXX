@@ -4,6 +4,8 @@ import com.smartcampus.incident.dto.TicketRequestDto;
 import com.smartcampus.incident.dto.TicketResponseDto;
 import com.smartcampus.incident.entity.*;
 import com.smartcampus.incident.repository.TicketRepository;
+import com.smartcampus.resource.model.Resource;
+import com.smartcampus.resource.repository.ResourceRepository;
 import com.smartcampus.user.CurrentUserService;
 import com.smartcampus.user.Role;
 import com.smartcampus.user.User;
@@ -21,13 +23,16 @@ public class TicketService {
     private final TicketRepository ticketRepository;
     private final CurrentUserService currentUserService;
     private final UserRepository userRepository;
+    private final ResourceRepository resourceRepository;
 
     public TicketService(TicketRepository ticketRepository,
                          CurrentUserService currentUserService,
-                         UserRepository userRepository) {
+                         UserRepository userRepository,
+                         ResourceRepository resourceRepository) {
         this.ticketRepository = ticketRepository;
         this.currentUserService = currentUserService;
         this.userRepository = userRepository;
+        this.resourceRepository = resourceRepository;
     }
 
     // ✅ CREATE TICKET (DTO version)
@@ -42,7 +47,9 @@ public class TicketService {
         t.setDescription(dto.getDescription());
         t.setCategory(TicketCategory.valueOf(dto.getCategory()));
         t.setPriority(TicketPriority.valueOf(dto.getPriority()));
-        t.setLocation(TicketLocation.valueOf(dto.getLocation()));
+        Resource resource = resourceRepository.findById(dto.getResourceId())
+            .orElseThrow(() -> new RuntimeException("Resource not found"));
+        t.setResource(resource);
         t.setStatus(TicketStatus.OPEN);
         t.setCreatedByEmail(currentUser.getEmail());
 
@@ -204,7 +211,11 @@ public class TicketService {
         dto.setStatus(t.getStatus());
         dto.setCategory(t.getCategory());
         dto.setPriority(t.getPriority());
-        dto.setLocation(t.getLocation());
+        if (t.getResource() != null) {
+            dto.setResourceId(t.getResource().getId());
+            dto.setResourceName(t.getResource().getName());
+            dto.setResourceLocation(t.getResource().getLocation());
+        }
 
         return dto;
     }

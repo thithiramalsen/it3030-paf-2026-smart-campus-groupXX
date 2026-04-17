@@ -1,5 +1,6 @@
 package com.smartcampus.incident.entity;
 
+import com.smartcampus.resource.model.Resource;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +31,9 @@ public class Ticket {
     @Enumerated(EnumType.STRING)
     private TicketPriority priority;
 
-    @Enumerated(EnumType.STRING)
-    private TicketLocation location;
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "resource_id")
+    private Resource resource;
 
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TicketComment> comments = new ArrayList<>();
@@ -110,11 +112,11 @@ public class Ticket {
         this.priority = priority;
     }
 
-    public TicketLocation getLocation() {
-        return location;
+    public Resource getResource() {
+        return resource;
     }
 
-    public void setLocation(TicketLocation location) {
-        this.location = location;
+    public void setResource(Resource resource) {
+        this.resource = resource;
     }
 }

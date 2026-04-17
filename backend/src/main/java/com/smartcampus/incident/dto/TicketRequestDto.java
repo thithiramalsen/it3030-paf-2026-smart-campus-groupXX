@@ -17,8 +17,8 @@ public class TicketRequestDto {
     @NotNull(message = "Priority is required")
     private String priority;
 
-    @NotNull(message = "Location is required")
-    private String location;
+    @NotNull(message = "Resource is required")
+    private Long resourceId;
 
     // ✅ GETTERS
 
@@ -38,8 +38,8 @@ public class TicketRequestDto {
         return priority;
     }
 
-    public String getLocation() {
-        return location;
+    public Long getResourceId() {
+        return resourceId;
     }
 
     // ✅ SETTERS
@@ -60,7 +60,7 @@ public class TicketRequestDto {
         this.priority = priority;
     }
 
-    public void setLocation(String location) {
-        this.location = location;
+    public void setResourceId(Long resourceId) {
+        this.resourceId = resourceId;
     }
 }

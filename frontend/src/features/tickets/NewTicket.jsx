@@ -1,24 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createTicket, uploadAttachment } from "../../api/ticketsApi"; // ✅ changed
+import { getAllResources } from "../../api/resourceApi";
 
 const CATEGORY_OPTIONS = ["ELECTRICAL", "NETWORK", "HARDWARE", "SOFTWARE"];
 const PRIORITY_OPTIONS = ["LOW", "MEDIUM", "HIGH"];
-const LOCATION_OPTIONS = [ 
-    "LAB_1",
-    "LAB_2",
-    "LAB_B",
-    "LECTURE_HALL_A",
-    "LECTURE_HALL_B",
-    "LIBRARY",
-    "CAFETERIA" ];
-
 export default function NewTicket() {
   const [form, setForm] = useState({
     title: "",
     description: "",
     category: "",
     priority: "",
-    location: "",
+    resourceId: "",
   });
 
   const [file, setFile] = useState(null);
@@ -26,6 +18,31 @@ export default function NewTicket() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
+  const [resources, setResources] = useState([]);
+  const [loadingResources, setLoadingResources] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadResources = async () => {
+      try {
+        const res = await getAllResources();
+        if (!active) return;
+        setResources(res || []);
+      } catch (err) {
+        console.error("Failed to load resources", err);
+        if (active) setResources([]);
+      } finally {
+        if (active) setLoadingResources(false);
+      }
+    };
+
+    loadResources();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -49,7 +66,7 @@ export default function NewTicket() {
         description: form.description,
         category: form.category,
         priority: form.priority,
-        location: form.location,
+        resourceId: Number(form.resourceId),
       });
 
       const ticketId = res.data.id;
@@ -66,7 +83,7 @@ export default function NewTicket() {
         description: "",
         category: "",
         priority: "",
-        location: "",
+        resourceId: "",
       });
 
       setFile(null);
@@ -141,17 +158,21 @@ export default function NewTicket() {
           ))}
         </select>
 
-        {/* Location */}
+        {/* Resource */}
         <select
-          name="location"
-          value={form.location}
+          name="resourceId"
+          value={form.resourceId}
           onChange={handleChange}
           required
           style={{ width: "100%", padding: 10, marginBottom: 12 }}
         >
-          <option value="">Select Location</option>
-          {LOCATION_OPTIONS.map((l) => (
-            <option key={l}>{l}</option>
+          <option value="">
+            {loadingResources ? "Loading resources..." : "Select Resource"}
+          </option>
+          {resources.map((r) => (
+            <option key={r.id} value={r.id}>
+              {r.name}{r.location ? ` (${r.location})` : ""}
+            </option>
           ))}
         </select>
 

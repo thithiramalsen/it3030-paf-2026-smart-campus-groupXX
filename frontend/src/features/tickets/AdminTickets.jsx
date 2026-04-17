@@ -116,7 +116,7 @@ export default function AdminTickets() {
           <p>{t.description}</p>
 
           <p>
-            📍 {t.location} | ⚡ {t.priority} | 🏷 {t.category}
+            📍 {t.resourceName || "-"}{t.resourceLocation ? ` (${t.resourceLocation})` : ""} | ⚡ {t.priority} | 🏷 {t.category}
           </p>
 
           <p><strong>Status:</strong> {t.status}</p>

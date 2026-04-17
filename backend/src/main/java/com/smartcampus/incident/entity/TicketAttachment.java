@@ -1,5 +1,6 @@
 package com.smartcampus.incident.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -17,6 +18,7 @@ public class TicketAttachment {
 
     @ManyToOne
     @JoinColumn(name = "ticket_id")
+    @JsonIgnore
     private Ticket ticket;
 
     public TicketAttachment() {}

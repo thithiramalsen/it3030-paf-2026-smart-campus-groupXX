@@ -155,8 +155,11 @@ export default function TicketDetails() {
             <strong>{ticket.category}</strong>
           </div>
           <div>
-            <p className="muted">Location</p>
-            <strong>{ticket.location}</strong>
+            <p className="muted">Resource</p>
+            <strong>
+              {ticket.resourceName || "-"}
+              {ticket.resourceLocation ? ` (${ticket.resourceLocation})` : ""}
+            </strong>
           </div>
         </div>
 

@@ -72,7 +72,10 @@ export default function MyTicket() {
             <div className="inline-actions">
               <span><strong>Category:</strong> {ticket.category}</span>
               <span><strong>Priority:</strong> {ticket.priority}</span>
-              <span><strong>Location:</strong> {ticket.location}</span>
+              <span>
+                <strong>Resource:</strong> {ticket.resourceName || "-"}
+                {ticket.resourceLocation ? ` (${ticket.resourceLocation})` : ""}
+              </span>
             </div>
 
             {ticket.technicianAssigned && (
