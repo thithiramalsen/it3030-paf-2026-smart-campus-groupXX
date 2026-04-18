@@ -45,7 +45,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/**", "/api/auth/refresh", "/oauth2/**").permitAll()
+                    .requestMatchers("/actuator/**", "/api/auth/refresh", "/oauth2/**", "/uploads/**").permitAll()
                         .anyRequest().authenticated())
                 .oauth2Login(oauth -> oauth
                         .userInfoEndpoint(config -> config.userService(customOAuth2UserService))

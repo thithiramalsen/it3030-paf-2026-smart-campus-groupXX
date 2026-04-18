@@ -26,6 +26,8 @@ export default function UserDashboard() {
 
       {tab === 'overview' && (
         <div className="card-grid two">
+          <Panel title="Resources" text="Browse and request resources." />
+          <Panel title="Bookings" text="Manage your reservations." onClick={() => setTab('bookings')} />
           <Panel
             title="Resources"
             text="Browse and request resources."
@@ -43,35 +45,28 @@ export default function UserDashboard() {
 
       {tab === 'bookings' && (
         <div>
-          <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
-            <button
-              onClick={() => navigate('/bookings/new')}
-              style={{
-                padding: '10px 20px',
-                background: '#2563eb',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 8,
-                cursor: 'pointer',
-                fontSize: 15,
-              }}
-            >
-              + New Booking
-            </button>
-            <button
-              onClick={() => navigate('/bookings/my')}
-              style={{
-                padding: '10px 20px',
-                background: '#fff',
-                color: '#2563eb',
-                border: '1px solid #2563eb',
-                borderRadius: 8,
-                cursor: 'pointer',
-                fontSize: 15,
-              }}
-            >
-              View My Bookings
-            </button>
+          <h3 style={{ marginBottom: 16 }}>Booking Tools</h3>
+          <div className="card-grid two">
+            <article className="card" onClick={() => navigate('/bookings/new')}
+              style={{ cursor: 'pointer' }}>
+              <h3>📝 New Booking</h3>
+              <p>Request a room, lab, or equipment booking with smart slot suggestions.</p>
+            </article>
+            <article className="card" onClick={() => navigate('/bookings/my')}
+              style={{ cursor: 'pointer' }}>
+              <h3>📋 My Bookings</h3>
+              <p>View and manage all your booking requests and their statuses.</p>
+            </article>
+            <article className="card" onClick={() => navigate('/bookings/calendar')}
+              style={{ cursor: 'pointer' }}>
+              <h3>📅 Booking Calendar</h3>
+              <p>See all your bookings on a monthly calendar view.</p>
+            </article>
+            <article className="card" onClick={() => navigate('/bookings/heatmap')}
+              style={{ cursor: 'pointer' }}>
+              <h3>📊 Availability Heatmap</h3>
+              <p>Check which hours are busiest for any resource before booking.</p>
+            </article>
           </div>
         </div>
       )}

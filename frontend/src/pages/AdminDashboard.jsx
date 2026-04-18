@@ -34,22 +34,44 @@ export default function AdminDashboard() {
     <div className="page-block">
       <h1>Admin Dashboard</h1>
       {error && <p className="muted">{error}</p>}
+
       <div className="card-grid four">
         <article className="card stat"><h3>Total users</h3><p>{stats.total}</p></article>
         <article className="card stat"><h3>Active</h3><p>{stats.active}</p></article>
         <article className="card stat"><h3>Pending</h3><p>{stats.pending}</p></article>
         <article className="card stat"><h3>Suspended</h3><p>{stats.suspended}</p></article>
       </div>
+
       <article className="card">
         <h3>Quick management</h3>
         <p>Review account approvals and role assignments.</p>
         <Link className="text-link" to="/admin/users">Go to user management</Link>
       </article>
+
       <article className="card">
         <h3>Booking management</h3>
         <p>Review, approve, or reject booking requests from users.</p>
         <Link className="text-link" to="/admin/bookings">Go to booking management</Link>
       </article>
+
+      {/* 🔥 YOUR ADDITION — TICKET MANAGEMENT */}
+      <article className="card">
+        <h3>Ticket Management</h3>
+        <p>View, assign, and manage incident tickets.</p>
+        <Link className="text-link" to="/admin/tickets">
+          Go to ticket management
+        </Link>
+      </article>
+
+      {/* 🔥 YOUR ADDITION — REPLY TICKETS */}
+      <article className="card">
+        <h3>Reply Tickets</h3>
+        <p>Respond to user issues and manage ticket conversations.</p>
+        <Link className="text-link" to="/admin/tickets/reply">
+          Go to reply tickets
+        </Link>
+      </article>
+
     </div>
   );
 }
