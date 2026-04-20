@@ -13,6 +13,7 @@
         <java.version>17</java.version>
         <spring.boot.version>3.3.2</spring.boot.version>
         <jjwt.version>0.12.5</jjwt.version>
+        <start-class>com.smartcampus.SmartCampusApplication</start-class> 
     </properties>
 
     <dependencyManagement>
@@ -93,6 +94,9 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring.boot.version}</version>
+                <configuration>
+                    <mainClass>com.smartcampus.SmartCampusApplication</mainClass>
+                </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>

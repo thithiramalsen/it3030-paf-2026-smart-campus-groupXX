@@ -80,6 +80,25 @@ export default function AdminDashboard() {
         <p>Review, approve, or reject booking requests from users.</p>
         <Link className="text-link" to="/admin/bookings">Go to booking management</Link>
       </article>
+
+      {/* 🔥 YOUR ADDITION — TICKET MANAGEMENT */}
+      <article className="card">
+        <h3>Ticket Management</h3>
+        <p>View, assign, and manage incident tickets.</p>
+        <Link className="text-link" to="/admin/tickets">
+          Go to ticket management
+        </Link>
+      </article>
+
+      {/* 🔥 YOUR ADDITION — REPLY TICKETS */}
+      <article className="card">
+        <h3>Reply Tickets</h3>
+        <p>Respond to user issues and manage ticket conversations.</p>
+        <Link className="text-link" to="/admin/tickets/reply">
+          Go to reply tickets
+        </Link>
+      </article>
+
     </div>
   );
 }

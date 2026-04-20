@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { bookingApi } from '../../api/bookingApi';
 
 const STATUS_COLORS = {
@@ -15,6 +16,7 @@ export default function AdminBookings() {
   const [filter, setFilter] = useState('ALL');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const loadBookings = async (status) => {
     setLoading(true);
@@ -61,6 +63,12 @@ export default function AdminBookings() {
         <p className="muted">Review, approve, and reject booking requests across the campus.</p>
       </section>
 
+      <div className="inline-actions">
+        <button className="btn-outline" onClick={() => navigate('/admin')}>
+          Back to Admin Dashboard
+        </button>
+      </div>
+
       <div className="inline-actions tabs">
         {STATUSES.map((s) => (
           <button
@@ -75,7 +83,6 @@ export default function AdminBookings() {
 
       {loading && <p>Loading...</p>}
       {error && <p className="muted">{error}</p>}
-
       {!loading && bookings.length === 0 && (
         <article className="card"><p className="muted">No bookings found.</p></article>
       )}
@@ -104,7 +111,6 @@ export default function AdminBookings() {
               Attendees: {b.expectedAttendees}
             </p>
           )}
-
           {b.adminNote && (
             <p className="muted">
               Admin note: {b.adminNote}

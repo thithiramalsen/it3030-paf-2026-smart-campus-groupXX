@@ -1,12 +1,18 @@
 import { Link, useLocation } from 'react-router-dom';
 import {
+  BarChart3,
   Bell,
   Building2,
+  CalendarClock,
+  CalendarDays,
+  CalendarPlus,
   Compass,
   HardDrive,
   Home,
   LayoutDashboard,
+  MessageSquare,
   ShieldCheck,
+  Ticket,
   UserRound,
   Users,
   Wrench,
@@ -32,6 +38,12 @@ export default function Sidebar() {
 
   if (user?.role === 'USER') {
     roleSpecific.push(item('/dashboard', 'User Dashboard', LayoutDashboard));
+    roleSpecific.push(item('/bookings/my', 'My Bookings', CalendarClock));
+    roleSpecific.push(item('/bookings/new', 'New Booking', CalendarPlus));
+    roleSpecific.push(item('/bookings/calendar', 'Booking Calendar', CalendarDays));
+    roleSpecific.push(item('/bookings/heatmap', 'Availability Heatmap', BarChart3));
+    roleSpecific.push(item('/tickets/my', 'My Tickets', Ticket));
+    roleSpecific.push(item('/tickets/new', 'New Ticket', Ticket));
   }
 
   if (user?.role === 'TECHNICIAN' || user?.role === 'MANAGER' || user?.role === 'ADMIN') {
@@ -46,6 +58,9 @@ export default function Sidebar() {
   if (user?.role === 'ADMIN') {
     roleSpecific.push(item('/admin', 'Admin Dashboard', ShieldCheck));
     roleSpecific.push(item('/admin/users', 'Users Admin', Users));
+    roleSpecific.push(item('/admin/bookings', 'Booking Admin', CalendarClock));
+    roleSpecific.push(item('/admin/tickets', 'Ticket Management', Ticket));
+    roleSpecific.push(item('/admin/tickets/reply', 'Reply Tickets', MessageSquare));
   }
 
   const items = [...common, ...roleSpecific];

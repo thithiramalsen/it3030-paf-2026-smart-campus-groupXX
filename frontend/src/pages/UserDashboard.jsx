@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BellRing, Building2, CalendarClock, CalendarPlus, Ticket } from 'lucide-react';
+import { BarChart3, BellRing, Building2, CalendarClock, CalendarDays, CalendarPlus, Ticket } from 'lucide-react';
 
 function Panel({ title, text, onClick, icon: Icon, tone = 'brand' }) {
   return (
@@ -49,26 +49,37 @@ export default function UserDashboard() {
             tone="sky"
             onClick={() => setTab('bookings')}
           />
-          <Panel title="Tickets" text="Report issues and follow progress." icon={Ticket} tone="amber" />
-          <Panel title="Updates" text="See campus announcements." icon={BellRing} tone="rose" />
+          <Panel title="Tickets" text="Report issues and follow progress." icon={Ticket} tone="amber" onClick={() => setTab('tickets')} />
+          <Panel title="Updates" text="See campus announcements." icon={BellRing} tone="rose" onClick={() => navigate('/notifications')} />
         </div>
       )}
 
       {tab === 'bookings' && (
-        <article className="card">
-          <h3>Bookings</h3>
-          <p className="muted">Create requests and monitor approvals from one place.</p>
-          <div className="inline-actions">
-            <button className="btn-primary" onClick={() => navigate('/bookings/new')}>
-              <CalendarPlus size={16} />
-              New Booking
-            </button>
-            <button className="btn-outline" onClick={() => navigate('/bookings/my')}>
-              <CalendarClock size={16} />
-              View My Bookings
-            </button>
+        <div>
+          <h3 style={{ marginBottom: 12 }}>Booking Tools</h3>
+          <div className="card-grid two">
+            <article className="card interactive" onClick={() => navigate('/bookings/new')} style={{ cursor: 'pointer' }}>
+              <div className="feature-icon brand"><CalendarPlus size={18} /></div>
+              <h3>New Booking</h3>
+              <p className="feature-meta">Request a room, lab, or equipment booking with smart slot suggestions.</p>
+            </article>
+            <article className="card interactive" onClick={() => navigate('/bookings/my')} style={{ cursor: 'pointer' }}>
+              <div className="feature-icon sky"><CalendarClock size={18} /></div>
+              <h3>My Bookings</h3>
+              <p className="feature-meta">View and manage all your booking requests and their statuses.</p>
+            </article>
+            <article className="card interactive" onClick={() => navigate('/bookings/calendar')} style={{ cursor: 'pointer' }}>
+              <div className="feature-icon amber"><CalendarDays size={18} /></div>
+              <h3>Booking Calendar</h3>
+              <p className="feature-meta">See all your bookings on a monthly calendar view.</p>
+            </article>
+            <article className="card interactive" onClick={() => navigate('/bookings/heatmap')} style={{ cursor: 'pointer' }}>
+              <div className="feature-icon rose"><BarChart3 size={18} /></div>
+              <h3>Availability Heatmap</h3>
+              <p className="feature-meta">Check which hours are busiest for any resource before booking.</p>
+            </article>
           </div>
-        </article>
+        </div>
       )}
 
       {tab === 'resources' && (
@@ -89,7 +100,24 @@ export default function UserDashboard() {
         </article>
       )}
 
-      {tab !== 'overview' && tab !== 'bookings' && tab !== 'resources' && (
+      {tab === 'tickets' && (
+        <article className="card">
+          <h3>Ticket Tools</h3>
+          <p className="muted">Create a new issue or review your existing tickets.</p>
+          <div className="inline-actions">
+            <button className="btn-primary" onClick={() => navigate('/tickets/new')}>
+              <Ticket size={16} />
+              New Ticket
+            </button>
+            <button className="btn-outline" onClick={() => navigate('/tickets/my')}>
+              <Ticket size={16} />
+              My Tickets
+            </button>
+          </div>
+        </article>
+      )}
+
+      {tab !== 'overview' && tab !== 'bookings' && tab !== 'resources' && tab !== 'tickets' && (
         <article className="card">Feature module for {tab} is ready for backend integration.</article>
       )}
     </div>

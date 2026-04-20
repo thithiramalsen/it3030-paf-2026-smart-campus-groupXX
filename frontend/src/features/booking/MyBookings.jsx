@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { bookingApi } from '../../api/bookingApi';
+import { useNavigate } from 'react-router-dom';
 
 const STATUS_COLORS = {
   PENDING: '#f59e0b',
@@ -12,6 +13,7 @@ export default function MyBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const loadBookings = async () => {
     try {
@@ -49,6 +51,18 @@ export default function MyBookings() {
         <p className="muted">Track status, review details, and cancel when plans change.</p>
       </section>
 
+      <div className="inline-actions">
+        <button className="btn-outline" onClick={() => navigate('/dashboard')}>
+          Back to Dashboard
+        </button>
+        <button className="btn-outline" onClick={() => navigate('/bookings/calendar')}>
+          Calendar View
+        </button>
+        <button className="btn-primary" onClick={() => navigate('/bookings/new')}>
+          New Booking
+        </button>
+      </div>
+
       {bookings.length === 0 && (
         <article className="card">
           <p className="muted">You have no bookings yet.</p>
@@ -76,13 +90,11 @@ export default function MyBookings() {
               Attendees: {b.expectedAttendees}
             </p>
           )}
-
           {b.adminNote && (
             <p className="muted">
               Admin note: {b.adminNote}
             </p>
           )}
-
           {b.cancellationReason && (
             <p className="muted">
               Cancellation reason: {b.cancellationReason}

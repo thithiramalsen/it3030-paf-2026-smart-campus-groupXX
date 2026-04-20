@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ClipboardCheck, LayoutDashboard, ShieldAlert, Wrench } from 'lucide-react';
+import AssignedTickets from '../features/tickets/AssignedTickets';
 
 export default function TechnicianDashboard() {
   const [tab, setTab] = useState('overview');
@@ -39,13 +40,7 @@ export default function TechnicianDashboard() {
       )}
 
       {tab === 'tickets' && (
-        <article className="card">
-          <div className="feature-icon amber">
-            <ClipboardCheck size={18} />
-          </div>
-          <h3>Ticket center</h3>
-          <p className="feature-meta">Ticket workflows are connected and ready for backend activity streams.</p>
-        </article>
+        <AssignedTickets />
       )}
 
       {tab === 'maintenance' && (
