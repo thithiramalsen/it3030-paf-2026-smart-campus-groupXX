@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { BarChart3, BellRing, Building2, CalendarClock, CalendarDays, CalendarPlus, Ticket } from 'lucide-react';
 
-function Panel({ title, text, onClick }) {
+function Panel({ title, text, onClick, icon: Icon, tone = 'brand' }) {
   return (
-    <article className="card" onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default' }}>
+    <article className="card interactive" onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default' }}>
+      <div className={`feature-icon ${tone}`}>
+        <Icon size={18} />
+      </div>
       <h3>{title}</h3>
-      <p>{text}</p>
+      <p className="feature-meta">{text}</p>
     </article>
   );
 }
@@ -16,7 +20,12 @@ export default function UserDashboard() {
 
   return (
     <div className="page-block">
-      <h1>User Dashboard</h1>
+      <section className="page-hero">
+        <p className="kicker">User Workspace</p>
+        <h1 className="page-hero-title">User Dashboard</h1>
+        <p className="muted">Quick actions for resources, bookings, and service updates.</p>
+      </section>
+
       <div className="inline-actions tabs">
         <button className={tab === 'overview' ? 'tab active' : 'tab'} onClick={() => setTab('overview')}>Overview</button>
         <button className={tab === 'resources' ? 'tab active' : 'tab'} onClick={() => setTab('resources')}>Resources</button>
@@ -26,88 +35,89 @@ export default function UserDashboard() {
 
       {tab === 'overview' && (
         <div className="card-grid two">
-          <Panel title="Resources" text="Browse and request resources." />
-          <Panel title="Bookings" text="Manage your reservations." onClick={() => setTab('bookings')} />
           <Panel
             title="Resources"
             text="Browse and request resources."
+            icon={Building2}
+            tone="brand"
             onClick={() => setTab('resources')}
           />
           <Panel
             title="Bookings"
             text="Manage your reservations."
+            icon={CalendarClock}
+            tone="sky"
             onClick={() => setTab('bookings')}
           />
-          <Panel title="Tickets" text="Report issues and follow progress." />
-          <Panel title="Updates" text="See campus announcements." />
+          <Panel title="Tickets" text="Report issues and follow progress." icon={Ticket} tone="amber" onClick={() => setTab('tickets')} />
+          <Panel title="Updates" text="See campus announcements." icon={BellRing} tone="rose" onClick={() => navigate('/notifications')} />
         </div>
       )}
 
       {tab === 'bookings' && (
         <div>
-          <h3 style={{ marginBottom: 16 }}>Booking Tools</h3>
+          <h3 style={{ marginBottom: 12 }}>Booking Tools</h3>
           <div className="card-grid two">
-            <article className="card" onClick={() => navigate('/bookings/new')}
-              style={{ cursor: 'pointer' }}>
-              <h3>📝 New Booking</h3>
-              <p>Request a room, lab, or equipment booking with smart slot suggestions.</p>
+            <article className="card interactive" onClick={() => navigate('/bookings/new')} style={{ cursor: 'pointer' }}>
+              <div className="feature-icon brand"><CalendarPlus size={18} /></div>
+              <h3>New Booking</h3>
+              <p className="feature-meta">Request a room, lab, or equipment booking with smart slot suggestions.</p>
             </article>
-            <article className="card" onClick={() => navigate('/bookings/my')}
-              style={{ cursor: 'pointer' }}>
-              <h3>📋 My Bookings</h3>
-              <p>View and manage all your booking requests and their statuses.</p>
+            <article className="card interactive" onClick={() => navigate('/bookings/my')} style={{ cursor: 'pointer' }}>
+              <div className="feature-icon sky"><CalendarClock size={18} /></div>
+              <h3>My Bookings</h3>
+              <p className="feature-meta">View and manage all your booking requests and their statuses.</p>
             </article>
-            <article className="card" onClick={() => navigate('/bookings/calendar')}
-              style={{ cursor: 'pointer' }}>
-              <h3>📅 Booking Calendar</h3>
-              <p>See all your bookings on a monthly calendar view.</p>
+            <article className="card interactive" onClick={() => navigate('/bookings/calendar')} style={{ cursor: 'pointer' }}>
+              <div className="feature-icon amber"><CalendarDays size={18} /></div>
+              <h3>Booking Calendar</h3>
+              <p className="feature-meta">See all your bookings on a monthly calendar view.</p>
             </article>
-            <article className="card" onClick={() => navigate('/bookings/heatmap')}
-              style={{ cursor: 'pointer' }}>
-              <h3>📊 Availability Heatmap</h3>
-              <p>Check which hours are busiest for any resource before booking.</p>
+            <article className="card interactive" onClick={() => navigate('/bookings/heatmap')} style={{ cursor: 'pointer' }}>
+              <div className="feature-icon rose"><BarChart3 size={18} /></div>
+              <h3>Availability Heatmap</h3>
+              <p className="feature-meta">Check which hours are busiest for any resource before booking.</p>
             </article>
           </div>
         </div>
       )}
 
       {tab === 'resources' && (
-        <div>
-          <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
-            <button
-              onClick={() => navigate('/resources')}
-              style={{
-                padding: '10px 20px',
-                background: '#1a9a72',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 8,
-                cursor: 'pointer',
-                fontSize: 15,
-              }}
-            >
+        <article className="card">
+          <h3>Resources</h3>
+          <p className="muted">Explore availability and jump straight into booking.</p>
+          <div className="inline-actions">
+            <button className="btn-primary" onClick={() => navigate('/resources')}>
+              <Building2 size={16} />
               Browse Resources
             </button>
-            <button
-              onClick={() => navigate('/bookings/new')}
-              style={{
-                padding: '10px 20px',
-                background: '#fff',
-                color: '#1a9a72',
-                border: '1px solid #1a9a72',
-                borderRadius: 8,
-                cursor: 'pointer',
-                fontSize: 15,
-              }}
-            >
+            <button className="btn-outline" onClick={() => navigate('/bookings/new')}>
+              <CalendarPlus size={16} />
               Book a Resource
             </button>
           </div>
-          <article className="card">Choose a resource to view details and start booking.</article>
-        </div>
+          <p className="muted">Choose a resource to view details and start booking.</p>
+        </article>
       )}
 
-      {tab !== 'overview' && tab !== 'bookings' && tab !== 'resources' && (
+      {tab === 'tickets' && (
+        <article className="card">
+          <h3>Ticket Tools</h3>
+          <p className="muted">Create a new issue or review your existing tickets.</p>
+          <div className="inline-actions">
+            <button className="btn-primary" onClick={() => navigate('/tickets/new')}>
+              <Ticket size={16} />
+              New Ticket
+            </button>
+            <button className="btn-outline" onClick={() => navigate('/tickets/my')}>
+              <Ticket size={16} />
+              My Tickets
+            </button>
+          </div>
+        </article>
+      )}
+
+      {tab !== 'overview' && tab !== 'bookings' && tab !== 'resources' && tab !== 'tickets' && (
         <article className="card">Feature module for {tab} is ready for backend integration.</article>
       )}
     </div>

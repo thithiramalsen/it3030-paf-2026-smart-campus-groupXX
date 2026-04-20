@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Bell, CheckCheck } from 'lucide-react';
 import { notificationApi } from '../api/notificationApi';
 
 export default function NotificationsPage() {
@@ -53,10 +54,22 @@ export default function NotificationsPage() {
 
   return (
     <div className="page-block">
+      <section className="page-hero">
+        <p className="kicker">Inbox</p>
+        <h1 className="page-hero-title">Notifications</h1>
+        <p className="muted">Stay on top of approvals, updates, and action-required alerts.</p>
+      </section>
+
       <div className="inline-actions spread">
-        <h1>Notifications</h1>
+        <div className="inline-actions">
+          <div className="feature-icon sky">
+            <Bell size={18} />
+          </div>
+          <h3>Recent activity</h3>
+        </div>
         {unread > 0 && (
           <button className="btn-outline" onClick={markAll}>
+            <CheckCheck size={16} />
             Mark all as read ({unread})
           </button>
         )}

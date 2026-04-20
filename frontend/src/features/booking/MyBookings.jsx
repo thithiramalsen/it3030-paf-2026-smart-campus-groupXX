@@ -40,64 +40,73 @@ export default function MyBookings() {
     }
   };
 
-  if (loading) return <p>Loading your bookings...</p>;
-  if (error) return <p style={{ color: 'red' }}>{error}</p>;
+  if (loading) return <div className="page-block">Loading your bookings...</div>;
+  if (error) return <div className="page-block"><p className="muted">{error}</p></div>;
 
   return (
-    <div style={{ maxWidth: 700, margin: '0 auto', padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <button onClick={() => navigate('/dashboard')} style={{ marginBottom: 16, padding: '6px 12px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontSize: 13 }}>← Back to Dashboard</button>
-        <h2 style={{ margin: 0 }}>My Bookings</h2>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => navigate('/bookings/calendar')} style={{
-            padding: '8px 14px', background: '#fff', color: '#2563eb',
-            border: '1px solid #2563eb', borderRadius: 8, cursor: 'pointer'
-          }}>📅 Calendar View</button>
-          <button onClick={() => navigate('/bookings/new')} style={{
-            padding: '8px 14px', background: '#2563eb', color: '#fff',
-            border: 'none', borderRadius: 8, cursor: 'pointer'
-          }}>+ New Booking</button>
-        </div>
+    <div className="page-block narrow">
+      <section className="page-hero">
+        <p className="kicker">Bookings</p>
+        <h1 className="page-hero-title">My Bookings</h1>
+        <p className="muted">Track status, review details, and cancel when plans change.</p>
+      </section>
+
+      <div className="inline-actions">
+        <button className="btn-outline" onClick={() => navigate('/dashboard')}>
+          Back to Dashboard
+        </button>
+        <button className="btn-outline" onClick={() => navigate('/bookings/calendar')}>
+          Calendar View
+        </button>
+        <button className="btn-primary" onClick={() => navigate('/bookings/new')}>
+          New Booking
+        </button>
       </div>
 
       {bookings.length === 0 && (
-        <p style={{ color: '#6b7280' }}>You have no bookings yet.</p>
+        <article className="card">
+          <p className="muted">You have no bookings yet.</p>
+        </article>
       )}
 
       {bookings.map((b) => (
-        <div key={b.id} style={{
-          border: '1px solid #e5e7eb', borderRadius: 10, padding: 16, marginBottom: 16,
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <strong style={{ fontSize: 16 }}>{b.resourceName}</strong>
-            <span style={{
-              background: STATUS_COLORS[b.status], color: '#fff',
-              padding: '2px 10px', borderRadius: 12, fontSize: 13,
-            }}>{b.status}</span>
+        <article key={b.id} className="card">
+          <div className="inline-actions spread">
+            <strong>{b.resourceName}</strong>
+            <span className="status-pill" style={{ background: STATUS_COLORS[b.status] }}>
+              {b.status}
+            </span>
           </div>
 
-          <p style={{ margin: '8px 0 4px', color: '#374151' }}>
+          <p className="booking-meta">
             📅 {b.bookingDate} &nbsp; 🕐 {b.startTime} – {b.endTime}
           </p>
-          <p style={{ margin: '4px 0', color: '#6b7280' }}>Purpose: {b.purpose}</p>
+          <p className="muted">
+            Purpose: {b.purpose}
+          </p>
 
           {b.expectedAttendees && (
-            <p style={{ margin: '4px 0', color: '#6b7280' }}>Attendees: {b.expectedAttendees}</p>
+            <p className="muted">
+              Attendees: {b.expectedAttendees}
+            </p>
           )}
           {b.adminNote && (
-            <p style={{ margin: '4px 0', color: '#6b7280', fontStyle: 'italic' }}>Admin note: {b.adminNote}</p>
+            <p className="muted">
+              Admin note: {b.adminNote}
+            </p>
           )}
           {b.cancellationReason && (
-            <p style={{ margin: '4px 0', color: '#6b7280', fontStyle: 'italic' }}>Cancellation reason: {b.cancellationReason}</p>
+            <p className="muted">
+              Cancellation reason: {b.cancellationReason}
+            </p>
           )}
 
           {(b.status === 'PENDING' || b.status === 'APPROVED') && (
-            <button onClick={() => handleCancel(b.id)} style={{
-              marginTop: 10, padding: '6px 14px', background: '#ef4444',
-              color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer',
-            }}>Cancel Booking</button>
+            <button className="btn-danger" onClick={() => handleCancel(b.id)}>
+              Cancel Booking
+            </button>
           )}
-        </div>
+        </article>
       ))}
     </div>
   );

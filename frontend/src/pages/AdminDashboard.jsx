@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Clock3, ShieldCheck, UserCheck, UserX, Users } from 'lucide-react';
 import { adminApi } from '../api/adminApi';
 
 export default function AdminDashboard() {
@@ -32,17 +33,43 @@ export default function AdminDashboard() {
 
   return (
     <div className="page-block">
-      <h1>Admin Dashboard</h1>
+      <section className="page-hero">
+        <p className="kicker">Administration</p>
+        <h1 className="page-hero-title">Admin Dashboard</h1>
+        <p className="muted">Govern access, approvals, and booking oversight with confidence.</p>
+      </section>
+
       {error && <p className="muted">{error}</p>}
 
       <div className="card-grid four">
-        <article className="card stat"><h3>Total users</h3><p>{stats.total}</p></article>
-        <article className="card stat"><h3>Active</h3><p>{stats.active}</p></article>
-        <article className="card stat"><h3>Pending</h3><p>{stats.pending}</p></article>
-        <article className="card stat"><h3>Suspended</h3><p>{stats.suspended}</p></article>
+        <article className="card stat">
+          <div className="feature-icon sky"><Users size={18} /></div>
+          <h3>Total users</h3>
+          <p>{stats.total}</p>
+          <div className="stat-line" />
+        </article>
+        <article className="card stat">
+          <div className="feature-icon brand"><UserCheck size={18} /></div>
+          <h3>Active</h3>
+          <p>{stats.active}</p>
+          <div className="stat-line" />
+        </article>
+        <article className="card stat">
+          <div className="feature-icon amber"><Clock3 size={18} /></div>
+          <h3>Pending</h3>
+          <p>{stats.pending}</p>
+          <div className="stat-line" />
+        </article>
+        <article className="card stat">
+          <div className="feature-icon rose"><UserX size={18} /></div>
+          <h3>Suspended</h3>
+          <p>{stats.suspended}</p>
+          <div className="stat-line" />
+        </article>
       </div>
 
       <article className="card">
+        <div className="feature-icon brand"><ShieldCheck size={18} /></div>
         <h3>Quick management</h3>
         <p>Review account approvals and role assignments.</p>
         <Link className="text-link" to="/admin/users">Go to user management</Link>
