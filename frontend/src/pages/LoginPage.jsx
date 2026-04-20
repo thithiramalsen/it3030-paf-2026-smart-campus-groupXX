@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Building2, ShieldCheck, Sparkles, Zap } from 'lucide-react';
 import { useAuth } from '../features/auth/AuthContext';
 
 export default function LoginPage() {
@@ -18,11 +19,33 @@ export default function LoginPage() {
         <p>
           Book resources, track service requests, coordinate teams, and keep everyone informed.
         </p>
+
+        <div className="login-highlights">
+          <div className="login-highlight">
+            <ShieldCheck size={18} />
+            <span>Role-aware secure access</span>
+          </div>
+          <div className="login-highlight">
+            <Zap size={18} />
+            <span>Live booking and alerts</span>
+          </div>
+          <div className="login-highlight">
+            <Building2 size={18} />
+            <span>Unified campus operations</span>
+          </div>
+        </div>
       </section>
+
       <section className="login-card">
+        <div className="login-card-badge">
+          <Building2 size={14} />
+          Operations Hub
+        </div>
         <h2>Sign in</h2>
         <p>Use your institutional Google account to continue.</p>
-        <button className="btn-primary" onClick={onLogin} disabled={submitting}>
+
+        <button className="btn-primary btn-wide" onClick={onLogin} disabled={submitting}>
+          <Sparkles size={16} />
           {submitting ? 'Redirecting...' : 'Sign in with Google'}
         </button>
       </section>
