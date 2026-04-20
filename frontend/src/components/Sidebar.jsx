@@ -21,6 +21,13 @@ export default function Sidebar() {
 
   if (user?.role === 'USER') {
     roleSpecific.push(item('/dashboard', 'User Dashboard'));
+    roleSpecific.push(item('/bookings/my', 'My Bookings'));
+    roleSpecific.push(item('/bookings/new', 'New Booking'));
+    roleSpecific.push(item('/bookings/calendar', 'Booking Calendar'));
+    roleSpecific.push(item('/bookings/heatmap', 'Availability Heatmap'));
+    roleSpecific.push(item('/tickets/my', 'My Tickets'));
+    roleSpecific.push(item('/tickets/new', 'New Tickets'));
+
   }
 
   if (user?.role === 'TECHNICIAN' || user?.role === 'MANAGER' || user?.role === 'ADMIN') {
@@ -35,6 +42,9 @@ export default function Sidebar() {
   if (user?.role === 'ADMIN') {
     roleSpecific.push(item('/admin', 'Admin Dashboard'));
     roleSpecific.push(item('/admin/users', 'Users Admin'));
+    roleSpecific.push(item('/admin/bookings', 'Booking Admin'));
+    roleSpecific.push(item('/admin/tickets', 'Ticket Management'));
+    roleSpecific.push(item('/admin/tickets/reply', 'Reply Tickets'));
   }
 
   const items = [...common, ...roleSpecific];
