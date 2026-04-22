@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { bookingApi } from '../../api/bookingApi';
-import { getResourceById } from '../../api/resourceApi';
+import { getAllResources } from '../../api/resourceApi';
 
 const DURATION_OPTIONS = [
   { label: '30 minutes', value: 30 },
@@ -17,8 +17,8 @@ const BUSY_CONFIG = {
   PEAK:     { emoji: '🔴', label: 'Peak',     color: '#ef4444' },
 };
 
-const DAY_START = 8;  // 8 AM
-const DAY_END   = 20; // 8 PM
+const DAY_START = 8;
+const DAY_END   = 20;
 const DAY_HOURS = DAY_END - DAY_START;
 
 function timeToPercent(timeStr) {
@@ -27,12 +27,10 @@ function timeToPercent(timeStr) {
 }
 
 export default function BookingForm({ onSuccess }) {
-  const [searchParams] = useSearchParams();
-  const selectedResourceId = searchParams.get('resourceId') || '';
-
+  const [resources, setResources] = useState([]);
+  const [selectedResource, setSelectedResource] = useState(null);
   const [form, setForm] = useState({
-    resourceId: selectedResourceId,
-    resourceName: '',
+    resourceId: '',
     bookingDate: '',
     startTime: '',
     endTime: '',
@@ -44,37 +42,21 @@ export default function BookingForm({ onSuccess }) {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
 
+  // Load all active resources on mount
   useEffect(() => {
-    if (!selectedResourceId) return;
+    getAllResources()
+      .then((data) => {
+        const active = Array.isArray(data)
+          ? data.filter((r) => r.status === 'ACTIVE')
+          : [];
+        setResources(active);
+      })
+      .catch(() => setResources([]));
+  }, []);
 
-    let alive = true;
-
-    const hydrateSelectedResource = async () => {
-      try {
-        const resource = await getResourceById(selectedResourceId);
-        if (!alive) return;
-        setForm((prev) => ({
-          ...prev,
-          resourceId: selectedResourceId,
-          resourceName: prev.resourceName || resource?.name || '',
-        }));
-      } catch {
-        if (!alive) return;
-        setForm((prev) => ({
-          ...prev,
-          resourceId: selectedResourceId,
-        }));
-      }
-    };
-
-    hydrateSelectedResource();
-
-    return () => {
-      alive = false;
-    };
-  }, [selectedResourceId]);
-
+  // Load slot suggestions when resource and date selected
   useEffect(() => {
     if (form.resourceId && form.bookingDate) {
       bookingApi
@@ -85,6 +67,13 @@ export default function BookingForm({ onSuccess }) {
       setSuggestions([]);
     }
   }, [form.resourceId, form.bookingDate, duration]);
+
+  const handleResourceChange = (e) => {
+    const id = e.target.value;
+    const resource = resources.find((r) => String(r.id) === id);
+    setSelectedResource(resource || null);
+    setForm({ ...form, resourceId: id });
+  };
 
   const applySuggestion = (slot) => {
     setForm((prev) => ({
@@ -105,13 +94,17 @@ export default function BookingForm({ onSuccess }) {
     setSuccess(false);
     try {
       await bookingApi.createBooking({
-        ...form,
+        resourceId: Number(form.resourceId),
+        bookingDate: form.bookingDate,
+        startTime: form.startTime,
+        endTime: form.endTime,
+        purpose: form.purpose,
         expectedAttendees: form.expectedAttendees ? parseInt(form.expectedAttendees) : null,
       });
       setSuccess(true);
       onSuccess?.();
     } catch (err) {
-      setError(err.response?.data?.message || 'Booking failed. Please try again.');
+      setError(err.response?.data?.message || err.message || 'Booking failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -119,31 +112,61 @@ export default function BookingForm({ onSuccess }) {
 
   return (
     <div style={{ maxWidth: 560, margin: '0 auto', padding: 24 }}>
+      <button type="button" onClick={() => navigate('/bookings/my')} style={{
+        marginBottom: 16, padding: '6px 12px', background: '#fff',
+        border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontSize: 13
+      }}>← Back to My Bookings</button>
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <button type="button" onClick={() => navigate('/bookings/my')} style={{ marginBottom: 16, padding: '6px 12px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontSize: 13 }}>← Back to My Bookings</button>
         <h2 style={{ margin: 0 }}>Request a Booking</h2>
-        <button type="button" onClick={() => window.location.href = '/bookings/heatmap'} style={{
+        <button type="button" onClick={() => navigate('/bookings/heatmap')} style={{
           padding: '6px 12px', background: '#fff', color: '#6b7280',
           border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontSize: 13
         }}>📊 View Heatmap</button>
       </div>
 
       <form onSubmit={handleSubmit}>
+
+        {/* Resource dropdown */}
         <div style={{ marginBottom: 12 }}>
-          <label>Resource ID</label>
-          <input name="resourceId" value={form.resourceId} onChange={handleChange} required
-            style={{ display: 'block', width: '100%', padding: 8, marginTop: 4, borderRadius: 6, border: '1px solid #d1d5db' }} />
+          <label>Select Resource</label>
+          <select name="resourceId" value={form.resourceId}
+            onChange={handleResourceChange} required
+            style={{ display: 'block', width: '100%', padding: 8, marginTop: 4, borderRadius: 6, border: '1px solid #d1d5db' }}>
+            <option value="">-- Choose a resource --</option>
+            {resources.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.name} — {r.type} — {r.location} (Capacity: {r.capacity})
+              </option>
+            ))}
+          </select>
         </div>
 
-        <div style={{ marginBottom: 12 }}>
-          <label>Resource Name</label>
-          <input name="resourceName" value={form.resourceName} onChange={handleChange} required
-            style={{ display: 'block', width: '100%', padding: 8, marginTop: 4, borderRadius: 6, border: '1px solid #d1d5db' }} />
-        </div>
+        {/* Resource info card */}
+        {selectedResource && (
+          <div style={{
+            padding: 12, marginBottom: 12, borderRadius: 8,
+            background: '#f0f9ff', border: '1px solid #bae6fd'
+          }}>
+            <strong>{selectedResource.name}</strong>
+            <p style={{ margin: '4px 0', fontSize: 13, color: '#0369a1' }}>
+              📍 {selectedResource.location} &nbsp;|&nbsp;
+              👥 Capacity: {selectedResource.capacity} &nbsp;|&nbsp;
+              🏷️ {selectedResource.type}
+            </p>
+            {selectedResource.description && (
+              <p style={{ margin: '4px 0', fontSize: 12, color: '#6b7280' }}>
+                {selectedResource.description}
+              </p>
+            )}
+          </div>
+        )}
 
+        {/* Date */}
         <div style={{ marginBottom: 12 }}>
           <label>Date</label>
-          <input type="date" name="bookingDate" value={form.bookingDate} onChange={handleChange} required
+          <input type="date" name="bookingDate" value={form.bookingDate}
+            onChange={handleChange} required
             style={{ display: 'block', width: '100%', padding: 8, marginTop: 4, borderRadius: 6, border: '1px solid #d1d5db' }} />
         </div>
 
@@ -162,38 +185,26 @@ export default function BookingForm({ onSuccess }) {
         {suggestions.length > 0 && (
           <div style={{ marginBottom: 16 }}>
             <p style={{ fontWeight: 600, marginBottom: 8 }}>💡 Available slots — click to auto-fill:</p>
-
-            {/* Visual timeline */}
             <div style={{ position: 'relative', height: 32, background: '#f3f4f6', borderRadius: 8, marginBottom: 12, overflow: 'hidden' }}>
-              {/* Time labels */}
-              {[8, 10, 12, 14, 16, 18, 20].map((h) => (
+              {[8,10,12,14,16,18,20].map((h) => (
                 <span key={h} style={{
-                  position: 'absolute',
-                  left: `${((h - DAY_START) / DAY_HOURS) * 100}%`,
+                  position: 'absolute', left: `${((h - DAY_START) / DAY_HOURS) * 100}%`,
                   top: 2, fontSize: 9, color: '#9ca3af', transform: 'translateX(-50%)'
                 }}>{h}:00</span>
               ))}
-              {/* Slot bars */}
               {suggestions.map((s, i) => {
                 const left = timeToPercent(s.suggestedStart);
                 const right = timeToPercent(s.suggestedEnd);
                 const busy = BUSY_CONFIG[s.busyLevel] || BUSY_CONFIG.QUIET;
                 return (
                   <div key={i} onClick={() => applySuggestion(s)} style={{
-                    position: 'absolute',
-                    left: `${left}%`,
-                    width: `${right - left}%`,
-                    top: 14, height: 14,
-                    background: busy.color,
-                    borderRadius: 4,
-                    cursor: 'pointer',
-                    opacity: 0.85,
+                    position: 'absolute', left: `${left}%`, width: `${right - left}%`,
+                    top: 14, height: 14, background: busy.color, borderRadius: 4,
+                    cursor: 'pointer', opacity: 0.85,
                   }} title={s.message} />
                 );
               })}
             </div>
-
-            {/* Slot chips */}
             {suggestions.map((s, i) => {
               const busy = BUSY_CONFIG[s.busyLevel] || BUSY_CONFIG.QUIET;
               return (
@@ -212,24 +223,29 @@ export default function BookingForm({ onSuccess }) {
           </div>
         )}
 
+        {/* Start/End time */}
         <div style={{ marginBottom: 12 }}>
           <label>Start Time</label>
-          <input type="time" name="startTime" value={form.startTime} onChange={handleChange} required
+          <input type="time" name="startTime" value={form.startTime}
+            onChange={handleChange} required
             style={{ display: 'block', width: '100%', padding: 8, marginTop: 4, borderRadius: 6, border: '1px solid #d1d5db' }} />
         </div>
-
         <div style={{ marginBottom: 12 }}>
           <label>End Time</label>
-          <input type="time" name="endTime" value={form.endTime} onChange={handleChange} required
+          <input type="time" name="endTime" value={form.endTime}
+            onChange={handleChange} required
             style={{ display: 'block', width: '100%', padding: 8, marginTop: 4, borderRadius: 6, border: '1px solid #d1d5db' }} />
         </div>
 
+        {/* Purpose */}
         <div style={{ marginBottom: 12 }}>
           <label>Purpose</label>
-          <textarea name="purpose" value={form.purpose} onChange={handleChange} required rows={3}
+          <textarea name="purpose" value={form.purpose} onChange={handleChange}
+            required rows={3}
             style={{ display: 'block', width: '100%', padding: 8, marginTop: 4, borderRadius: 6, border: '1px solid #d1d5db' }} />
         </div>
 
+        {/* Attendees */}
         <div style={{ marginBottom: 16 }}>
           <label>Expected Attendees</label>
           <input type="number" name="expectedAttendees" value={form.expectedAttendees}
