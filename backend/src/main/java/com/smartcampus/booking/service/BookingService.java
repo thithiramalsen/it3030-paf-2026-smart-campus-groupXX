@@ -9,6 +9,8 @@ import com.smartcampus.booking.exception.BookingActionNotAllowedException;
 import com.smartcampus.booking.exception.BookingConflictException;
 import com.smartcampus.booking.exception.BookingNotFoundException;
 import com.smartcampus.booking.repository.BookingRepository;
+import com.smartcampus.resource.model.Resource;
+import com.smartcampus.resource.repository.ResourceRepository;
 import com.smartcampus.user.CurrentUserService;
 import com.smartcampus.user.Role;
 import com.smartcampus.user.User;
@@ -24,11 +26,14 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final CurrentUserService currentUserService;
+    private final ResourceRepository resourceRepository;
 
     public BookingService(BookingRepository bookingRepository,
-                          CurrentUserService currentUserService) {
+                          CurrentUserService currentUserService,
+                          ResourceRepository resourceRepository) {
         this.bookingRepository = bookingRepository;
         this.currentUserService = currentUserService;
+        this.resourceRepository = resourceRepository;
     }
 
     // CREATE BOOKING
@@ -42,9 +47,28 @@ public class BookingService {
             throw new BookingActionNotAllowedException("End time must be after start time");
         }
 
-        // Check for conflicts
+        // Find real resource
+        Resource resource = resourceRepository.findById(dto.getResourceId())
+            .orElseThrow(() -> new BookingActionNotAllowedException(
+                "Resource not found with ID: " + dto.getResourceId()));
+
+        // Check resource is ACTIVE
+        if (!resource.getStatus().name().equals("ACTIVE")) {
+            throw new BookingActionNotAllowedException(
+                "Resource '" + resource.getName() + "' is currently not available");
+        }
+
+        // Check capacity
+        if (dto.getExpectedAttendees() != null && resource.getCapacity() != null
+                && dto.getExpectedAttendees() > resource.getCapacity()) {
+            throw new BookingActionNotAllowedException(
+                "Expected attendees (" + dto.getExpectedAttendees()
+                + ") exceeds resource capacity (" + resource.getCapacity() + ")");
+        }
+
+        // Check conflicts
         List<Booking> conflicts = bookingRepository.findConflictingBookings(
-            dto.getResourceId(),
+            resource.getId(),
             dto.getBookingDate(),
             dto.getStartTime(),
             dto.getEndTime()
@@ -53,18 +77,17 @@ public class BookingService {
         if (!conflicts.isEmpty()) {
             Booking conflict = conflicts.get(0);
             throw new BookingConflictException(
-                "This resource is already booked from " +
-                conflict.getStartTime() + " to " + conflict.getEndTime() +
-                " on " + conflict.getBookingDate() +
-                ". Please choose a different time."
+                "This resource is already booked from "
+                + conflict.getStartTime() + " to " + conflict.getEndTime()
+                + " on " + conflict.getBookingDate()
+                + ". Please choose a different time."
             );
         }
 
         // Save booking
         Booking booking = new Booking();
         booking.setUser(currentUser);
-        booking.setResourceId(dto.getResourceId());
-        booking.setResourceName(dto.getResourceName());
+        booking.setResource(resource);
         booking.setBookingDate(dto.getBookingDate());
         booking.setStartTime(dto.getStartTime());
         booking.setEndTime(dto.getEndTime());
@@ -75,20 +98,17 @@ public class BookingService {
         return toDto(bookingRepository.save(booking));
     }
 
-    // APPROVE BOOKING (Admin only)
+    // APPROVE
     public BookingResponseDto approveBooking(String bookingId, BookingActionDto dto) {
-
         Booking booking = findById(bookingId);
 
         if (booking.getStatus() != BookingStatus.PENDING) {
             throw new BookingActionNotAllowedException(
-                "Only PENDING bookings can be approved. Current status: " + booking.getStatus()
-            );
+                "Only PENDING bookings can be approved. Current status: " + booking.getStatus());
         }
 
-        // Re-check conflicts at approval time
         List<Booking> conflicts = bookingRepository.findConflictingBookings(
-            booking.getResourceId(),
+            booking.getResource().getId(),
             booking.getBookingDate(),
             booking.getStartTime(),
             booking.getEndTime()
@@ -96,51 +116,43 @@ public class BookingService {
 
         if (!conflicts.isEmpty()) {
             throw new BookingConflictException(
-                "Cannot approve — a conflicting booking already exists for this time slot"
-            );
+                "Cannot approve — a conflicting booking already exists for this time slot");
         }
 
         booking.setStatus(BookingStatus.APPROVED);
         booking.setAdminNote(dto != null ? dto.getNote() : null);
         booking.setUpdatedAt(Instant.now());
-
         return toDto(bookingRepository.save(booking));
     }
 
-    // REJECT BOOKING (Admin only)
+    // REJECT
     public BookingResponseDto rejectBooking(String bookingId, BookingActionDto dto) {
-
         Booking booking = findById(bookingId);
 
         if (booking.getStatus() != BookingStatus.PENDING) {
             throw new BookingActionNotAllowedException(
-                "Only PENDING bookings can be rejected. Current status: " + booking.getStatus()
-            );
+                "Only PENDING bookings can be rejected. Current status: " + booking.getStatus());
         }
 
         booking.setStatus(BookingStatus.REJECTED);
         booking.setAdminNote(dto != null ? dto.getNote() : "No reason provided");
         booking.setUpdatedAt(Instant.now());
-
         return toDto(bookingRepository.save(booking));
     }
 
-    // CANCEL BOOKING (User cancels own, Admin cancels any)
+    // CANCEL
     public BookingResponseDto cancelBooking(String bookingId, BookingActionDto dto) {
-
         User currentUser = currentUserService.getCurrentUser()
             .orElseThrow(() -> new BookingActionNotAllowedException("You must be logged in"));
 
         Booking booking = findById(bookingId);
 
-        if (booking.getStatus() != BookingStatus.APPROVED &&
-            booking.getStatus() != BookingStatus.PENDING) {
+        if (booking.getStatus() != BookingStatus.APPROVED
+                && booking.getStatus() != BookingStatus.PENDING) {
             throw new BookingActionNotAllowedException(
-                "Cannot cancel a booking with status: " + booking.getStatus()
-            );
+                "Cannot cancel a booking with status: " + booking.getStatus());
         }
 
-        // Users can only cancel their own bookings
         boolean isAdmin = currentUser.getRole() == Role.ADMIN;
         if (!isAdmin && !booking.getUser().getId().equals(currentUser.getId())) {
             throw new BookingActionNotAllowedException("You can only cancel your own bookings");
@@ -149,11 +161,10 @@ public class BookingService {
         booking.setStatus(BookingStatus.CANCELLED);
         booking.setCancellationReason(dto != null ? dto.getNote() : "No reason provided");
         booking.setUpdatedAt(Instant.now());
-
         return toDto(bookingRepository.save(booking));
     }
 
-    // GET SINGLE BOOKING
+    // GET SINGLE
     public BookingResponseDto getBookingById(String bookingId) {
         return toDto(findById(bookingId));
     }
@@ -162,12 +173,11 @@ public class BookingService {
     public List<BookingResponseDto> getMyBookings() {
         User currentUser = currentUserService.getCurrentUser()
             .orElseThrow(() -> new BookingActionNotAllowedException("You must be logged in"));
-
         return bookingRepository.findByUserIdOrderByCreatedAtDesc(currentUser.getId())
             .stream().map(this::toDto).collect(Collectors.toList());
     }
 
-    // GET ALL BOOKINGS (Admin)
+    // GET ALL BOOKINGS
     public List<BookingResponseDto> getAllBookings(BookingStatus status) {
         List<Booking> bookings = (status != null)
             ? bookingRepository.findByStatusOrderByCreatedAtDesc(status)
@@ -175,18 +185,19 @@ public class BookingService {
         return bookings.stream().map(this::toDto).collect(Collectors.toList());
     }
 
-    // HELPER - find booking or throw
+    // HELPER
     private Booking findById(String id) {
         return bookingRepository.findById(UUID.fromString(id))
             .orElseThrow(() -> new BookingNotFoundException(id));
     }
 
-    // HELPER - convert Booking entity to BookingResponseDto
     public BookingResponseDto toDto(Booking b) {
         BookingResponseDto dto = new BookingResponseDto();
         dto.setId(b.getId());
-        dto.setResourceId(b.getResourceId());
-        dto.setResourceName(b.getResourceName());
+        dto.setResourceId(b.getResource().getId());
+        dto.setResourceName(b.getResource().getName());
+        dto.setResourceLocation(b.getResource().getLocation());
+        dto.setResourceType(b.getResource().getType().name());
         dto.setUserId(b.getUser().getId());
         dto.setUserName(b.getUser().getName());
         dto.setUserEmail(b.getUser().getEmail());

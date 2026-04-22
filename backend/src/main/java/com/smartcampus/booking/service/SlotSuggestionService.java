@@ -25,7 +25,7 @@ public class SlotSuggestionService {
         this.bookingRepository = bookingRepository;
     }
 
-    public List<SlotSuggestionDto> suggestSlots(String resourceId, LocalDate fromDate, int durationMinutes) {
+    public List<SlotSuggestionDto> suggestSlots(Long resourceId, LocalDate fromDate, int durationMinutes) {
 
         List<SlotSuggestionDto> suggestions = new ArrayList<>();
         LocalDate searchDate = fromDate;
@@ -40,12 +40,11 @@ public class SlotSuggestionService {
         return suggestions.subList(0, Math.min(3, suggestions.size()));
     }
 
-    private List<SlotSuggestionDto> findSlotsOnDay(String resourceId, LocalDate date, int durationMinutes) {
+    private List<SlotSuggestionDto> findSlotsOnDay(Long resourceId, LocalDate date, int durationMinutes) {
 
         List<Booking> existing = bookingRepository
             .findApprovedBookingsByResourceAndDate(resourceId, date);
 
-        // Calculate busy level based on number of bookings on this day
         int bookingCount = existing.size();
         String busyLevel;
         if (bookingCount <= 1) {
