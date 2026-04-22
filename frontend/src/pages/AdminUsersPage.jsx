@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Search } from 'lucide-react';
 import { adminApi } from '../api/adminApi';
 import ApprovalDialog from '../components/ApprovalDialog';
 
@@ -76,10 +77,19 @@ export default function AdminUsersPage() {
 
   return (
     <div className="page-block">
+      <section className="page-hero">
+        <p className="kicker">User Governance</p>
+        <h1 className="page-hero-title">User Management</h1>
+        <p className="muted">Approve accounts, assign roles, and keep the campus directory healthy.</p>
+      </section>
+
       <div className="inline-actions spread">
-        <h1>User Management</h1>
-        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search name or email" />
+        <label className="search-wrap">
+          <Search size={16} />
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search name or email" />
+        </label>
       </div>
+
       {error && <p className="muted">{error}</p>}
 
       <div className="inline-actions tabs">

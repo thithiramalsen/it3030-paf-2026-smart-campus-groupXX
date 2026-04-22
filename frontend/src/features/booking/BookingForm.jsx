@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { bookingApi } from '../../api/bookingApi';
+import { getResourceById } from '../../api/resourceApi';
 
 const DURATION_OPTIONS = [
   { label: '30 minutes', value: 30 },
@@ -25,8 +27,11 @@ function timeToPercent(timeStr) {
 }
 
 export default function BookingForm({ onSuccess }) {
+  const [searchParams] = useSearchParams();
+  const selectedResourceId = searchParams.get('resourceId') || '';
+
   const [form, setForm] = useState({
-    resourceId: '',
+    resourceId: selectedResourceId,
     resourceName: '',
     bookingDate: '',
     startTime: '',
@@ -39,6 +44,36 @@ export default function BookingForm({ onSuccess }) {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (!selectedResourceId) return;
+
+    let alive = true;
+
+    const hydrateSelectedResource = async () => {
+      try {
+        const resource = await getResourceById(selectedResourceId);
+        if (!alive) return;
+        setForm((prev) => ({
+          ...prev,
+          resourceId: selectedResourceId,
+          resourceName: prev.resourceName || resource?.name || '',
+        }));
+      } catch {
+        if (!alive) return;
+        setForm((prev) => ({
+          ...prev,
+          resourceId: selectedResourceId,
+        }));
+      }
+    };
+
+    hydrateSelectedResource();
+
+    return () => {
+      alive = false;
+    };
+  }, [selectedResourceId]);
 
   useEffect(() => {
     if (form.resourceId && form.bookingDate) {
