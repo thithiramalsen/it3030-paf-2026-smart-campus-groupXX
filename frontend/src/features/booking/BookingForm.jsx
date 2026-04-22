@@ -104,7 +104,26 @@ export default function BookingForm({ onSuccess }) {
       setSuccess(true);
       onSuccess?.();
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Booking failed. Please try again.');
+      let errorMsg = 'Booking failed. Please try again.';
+      if (err.response?.data?.message) {
+        errorMsg = err.response.data.message;
+      } else if (err.response?.data) {
+        try {
+          const data = JSON.parse(err.response.data);
+          errorMsg = data.message || errorMsg;
+        } catch {
+          errorMsg = err.response.data;
+        }
+      } else if (err.message) {
+        try {
+          const parsed = JSON.parse(err.message);
+          errorMsg = parsed.message || err.message;
+        } catch {
+          errorMsg = err.message;
+        }
+      }
+      setError(errorMsg);
+    
     } finally {
       setLoading(false);
     }
