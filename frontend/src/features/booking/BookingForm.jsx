@@ -57,17 +57,34 @@ export default function BookingForm({ onSuccess }) {
   }, []);
 
   // Load slot suggestions when resource and date selected
-  useEffect(() => {
+    useEffect(() => {
     if (form.resourceId && form.bookingDate) {
+      // For today, only show slots from current time onwards
+      const today = new Date().toISOString().split('T')[0];
+      const isToday = form.bookingDate === today;
+      
       bookingApi
         .suggestSlots(form.resourceId, form.bookingDate, duration)
-        .then((res) => setSuggestions(res.data))
+        .then((res) => {
+          let slots = res.data;
+          if (isToday) {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinutes = now.getMinutes();
+            // Filter out slots that have already passed
+            slots = slots.filter((s) => {
+              const [slotHour, slotMin] = s.suggestedStart.split(':').map(Number);
+              return slotHour > currentHour || (slotHour === currentHour && slotMin > currentMinutes);
+            });
+          }
+          setSuggestions(slots);
+        })
         .catch(() => setSuggestions([]));
     } else {
       setSuggestions([]);
     }
   }, [form.resourceId, form.bookingDate, duration]);
-
+  
   const handleResourceChange = (e) => {
     const id = e.target.value;
     const resource = resources.find((r) => String(r.id) === id);
@@ -87,11 +104,59 @@ export default function BookingForm({ onSuccess }) {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+    const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
     setSuccess(false);
+
+    // Client-side validation with clear messages
+    if (!form.resourceId) {
+      setError('Please select a resource.');
+      return;
+    }
+    if (!form.bookingDate) {
+      setError('Please select a booking date.');
+      return;
+    }
+    if (!form.startTime) {
+      setError('Please select a start time.');
+      return;
+    }
+    if (!form.endTime) {
+      setError('Please select an end time.');
+      return;
+    }
+    if (form.startTime >= form.endTime) {
+      setError('End time must be after start time. Please select a correct time range.');
+      return;
+    }
+    if (!form.purpose.trim()) {
+      setError('Please enter the purpose of the booking.');
+      return;
+    }
+    if (form.expectedAttendees && selectedResource?.capacity) {
+      if (parseInt(form.expectedAttendees) > selectedResource.capacity) {
+        setError(`Number of attendees (${form.expectedAttendees}) exceeds the room capacity of ${selectedResource.capacity}. Please reduce the number of attendees or choose a bigger room.`);
+        return;
+      }
+    }
+    if (form.expectedAttendees && parseInt(form.expectedAttendees) < 1) {
+      setError('Number of attendees must be at least 1.');
+      return;
+    }
+
+    // Check if booking time is in the past for today
+    const today = new Date().toISOString().split('T')[0];
+    if (form.bookingDate === today) {
+      const now = new Date();
+      const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      if (form.startTime < currentTime) {
+        setError(`Start time ${form.startTime} is in the past. Please select a future time for today's booking.`);
+        return;
+      }
+    }
+
+    setLoading(true);
     try {
       await bookingApi.createBooking({
         resourceId: Number(form.resourceId),
