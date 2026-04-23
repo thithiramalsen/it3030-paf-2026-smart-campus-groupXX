@@ -156,4 +156,33 @@ public class BookingController {
         }
         return ResponseEntity.ok(schedule);
     }
+
+    // GET /api/bookings/schedule-matrix?resourceId=1&days=14
+    // Returns a matrix of date -> booked hours for table view
+    @GetMapping("/schedule-matrix")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<java.util.Map<String, java.util.List<Integer>>> getScheduleMatrix(
+            @RequestParam Long resourceId,
+            @RequestParam(defaultValue = "14") int days) {
+
+        java.util.Map<String, java.util.List<Integer>> matrix = new java.util.LinkedHashMap<>();
+        java.time.LocalDate date = java.time.LocalDate.now();
+
+        for (int d = 0; d < days; d++) {
+            java.util.List<Integer> bookedHours = new java.util.ArrayList<>();
+            java.util.List<com.smartcampus.booking.entity.Booking> bookings =
+                bookingRepository.findApprovedBookingsByResourceAndDate(resourceId, date);
+
+            for (com.smartcampus.booking.entity.Booking b : bookings) {
+                int start = b.getStartTime().getHour();
+                int end = b.getEndTime().getHour();
+                for (int h = start; h < end && h < 20; h++) {
+                    bookedHours.add(h);
+                }
+            }
+            matrix.put(date.toString(), bookedHours);
+            date = date.plusDays(1);
+        }
+        return ResponseEntity.ok(matrix);
+    }
 }
