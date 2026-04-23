@@ -30,13 +30,10 @@ export default function ResourceHeatmap() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // Load all active resources on mount
   useEffect(() => {
     getAllResources()
       .then((data) => {
-        const active = Array.isArray(data)
-          ? data.filter((r) => r.status === 'ACTIVE')
-          : [];
+        const active = Array.isArray(data) ? data.filter((r) => r.status === 'ACTIVE') : [];
         setResources(active);
       })
       .catch(() => setResources([]));
@@ -53,26 +50,9 @@ export default function ResourceHeatmap() {
     if (!selectedResource) return;
     setLoading(true);
     setError(null);
-
     try {
-      const today = new Date();
-      const hourCounts = {};
-      HOURS.forEach((h) => { hourCounts[h] = 0; });
-
-      for (let d = 0; d < DAYS_AHEAD; d++) {
-        const date = new Date(today);
-        date.setDate(today.getDate() + d);
-        const dateStr = date.toISOString().split('T')[0];
-        try {
-          const res = await bookingApi.suggestSlots(selectedResource.id, dateStr, 60);
-          const freeStarts = res.data.map((s) => parseInt(s.suggestedStart.split(':')[0]));
-          HOURS.forEach((h) => {
-            if (!freeStarts.includes(h)) hourCounts[h]++;
-          });
-        } catch { }
-      }
-
-      setHeatmap(hourCounts);
+      const res = await bookingApi.getBusyHours(selectedResource.id, 14);
+      setHeatmap(res.data);
     } catch {
       setError('Failed to generate heatmap.');
     } finally {
@@ -92,7 +72,6 @@ export default function ResourceHeatmap() {
         See which hours are busiest for a resource over the next 14 days.
       </p>
 
-      {/* Resource dropdown */}
       <div style={{ marginBottom: 12 }}>
         <label>Select Resource</label>
         <select onChange={handleResourceChange} defaultValue=""
@@ -106,12 +85,8 @@ export default function ResourceHeatmap() {
         </select>
       </div>
 
-      {/* Resource info card */}
       {selectedResource && (
-        <div style={{
-          padding: 12, marginBottom: 16, borderRadius: 8,
-          background: '#f0f9ff', border: '1px solid #bae6fd'
-        }}>
+        <div style={{ padding: 12, marginBottom: 16, borderRadius: 8, background: '#f0f9ff', border: '1px solid #bae6fd' }}>
           <strong>{selectedResource.name}</strong>
           <p style={{ margin: '4px 0', fontSize: 13, color: '#0369a1' }}>
             📍 {selectedResource.location} &nbsp;|&nbsp;
@@ -133,9 +108,7 @@ export default function ResourceHeatmap() {
 
       {heatmap && (
         <div>
-          <h3 style={{ marginBottom: 12 }}>
-            Busy hours for {selectedResource?.name}
-          </h3>
+          <h3 style={{ marginBottom: 12 }}>Busy hours for {selectedResource?.name}</h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {HOURS.map((h) => {
               const count = heatmap[h] || 0;

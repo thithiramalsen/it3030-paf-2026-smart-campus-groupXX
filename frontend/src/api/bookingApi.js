@@ -45,4 +45,10 @@ export const bookingApi = {
       params: { resourceId, date, durationMinutes },
     });
   },
+
+  // Get busy hours for heatmap
+  getBusyHours(resourceId, days = 14) {
+    return httpClient.get(`${BASE}/busy-hours`, { params: { resourceId, days } });
+  },
+  
 };
