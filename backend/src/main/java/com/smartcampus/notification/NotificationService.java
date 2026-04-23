@@ -94,10 +94,11 @@ public class NotificationService {
         );
     }
 
-    private String titleForType(NotificationType type) {
+      private String titleForType(NotificationType type) {
         return switch (type) {
             case BOOKING_APPROVED -> "Booking Approved";
             case BOOKING_REJECTED -> "Booking Rejected";
+            case BOOKING_CREATED -> "New Booking Request";
             case TICKET_UPDATED -> "Ticket Updated";
             case COMMENT_ADDED -> "New Comment";
         };

@@ -16,6 +16,10 @@ import com.smartcampus.user.Role;
 import com.smartcampus.user.User;
 import org.springframework.stereotype.Service;
 
+import com.smartcampus.notification.NotificationService;
+import com.smartcampus.notification.NotificationType;
+import com.smartcampus.user.UserRepository;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -27,13 +31,19 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final CurrentUserService currentUserService;
     private final ResourceRepository resourceRepository;
+    private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     public BookingService(BookingRepository bookingRepository,
                           CurrentUserService currentUserService,
-                          ResourceRepository resourceRepository) {
+                          ResourceRepository resourceRepository,
+                          NotificationService notificationService,
+                          UserRepository userRepository) {
         this.bookingRepository = bookingRepository;
         this.currentUserService = currentUserService;
         this.resourceRepository = resourceRepository;
+        this.notificationService = notificationService;
+        this.userRepository = userRepository;
     }
 
     // CREATE BOOKING
@@ -95,6 +105,15 @@ public class BookingService {
         booking.setExpectedAttendees(dto.getExpectedAttendees());
         booking.setStatus(BookingStatus.PENDING);
 
+                // Notify all admins about new booking
+        String bookingMsg = currentUser.getName() + " requested a booking for " 
+            + resource.getName() + " on " + dto.getBookingDate() 
+            + " (" + dto.getStartTime() + " - " + dto.getEndTime() + ")";
+        userRepository.findByRole(com.smartcampus.user.Role.ADMIN).forEach(admin ->
+            notificationService.notifyUser(admin.getId(), bookingMsg, 
+                NotificationType.BOOKING_CREATED, booking.getId())
+        );
+
         return toDto(bookingRepository.save(booking));
     }
 
@@ -122,6 +141,18 @@ public class BookingService {
         booking.setStatus(BookingStatus.APPROVED);
         booking.setAdminNote(dto != null ? dto.getNote() : null);
         booking.setUpdatedAt(Instant.now());
+
+                // Notify user their booking was approved
+        notificationService.notifyUser(
+            booking.getUser().getId(),
+            "Your booking for " + booking.getResource().getName() 
+                + " on " + booking.getBookingDate() 
+                + " (" + booking.getStartTime() + " - " + booking.getEndTime() 
+                + ") has been approved!",
+            NotificationType.BOOKING_APPROVED,
+            booking.getId()
+        );
+
         return toDto(bookingRepository.save(booking));
     }
 
@@ -137,6 +168,17 @@ public class BookingService {
         booking.setStatus(BookingStatus.REJECTED);
         booking.setAdminNote(dto != null ? dto.getNote() : "No reason provided");
         booking.setUpdatedAt(Instant.now());
+
+        // Notify user their booking was rejected
+        notificationService.notifyUser(
+            booking.getUser().getId(),
+            "Your booking for " + booking.getResource().getName() 
+                + " on " + booking.getBookingDate() 
+                + " has been rejected. Reason: " + booking.getAdminNote(),
+            NotificationType.BOOKING_REJECTED,
+            booking.getId()
+        );
+        
         return toDto(bookingRepository.save(booking));
     }
 
