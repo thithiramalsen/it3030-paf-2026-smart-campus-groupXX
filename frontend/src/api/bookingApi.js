@@ -50,5 +50,15 @@ export const bookingApi = {
   getBusyHours(resourceId, days = 14) {
     return httpClient.get(`${BASE}/busy-hours`, { params: { resourceId, days } });
   },
-  
+
+    // Get daily schedule for a specific date
+  getDailySchedule(resourceId, date) {
+    return httpClient.get(`${BASE}/daily-schedule`, { params: { resourceId, date } });
+  },
+
+    // Get schedule matrix for table heatmap view
+  getScheduleMatrix(resourceId, days = 14) {
+    return httpClient.get(`${BASE}/schedule-matrix`, { params: { resourceId, days } });
+  },
+
 };

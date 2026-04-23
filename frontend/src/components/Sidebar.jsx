@@ -59,8 +59,10 @@ export default function Sidebar() {
     roleSpecific.push(item('/admin', 'Admin Dashboard', ShieldCheck));
     roleSpecific.push(item('/admin/users', 'Users Admin', Users));
     roleSpecific.push(item('/admin/bookings', 'Booking Admin', CalendarClock));
+     roleSpecific.push(item('/bookings/heatmap', 'Availability Heatmap',BarChart3));
     roleSpecific.push(item('/admin/tickets', 'Ticket Management', Ticket));
     roleSpecific.push(item('/admin/tickets/reply', 'Reply Tickets', MessageSquare));
+
   }
 
   const items = [...common, ...roleSpecific];
