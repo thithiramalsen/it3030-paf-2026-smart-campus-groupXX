@@ -20,14 +20,20 @@ import java.util.List;
 @RequestMapping("/api/bookings")
 public class BookingController {
 
+
     private final BookingService bookingService;
     private final SlotSuggestionService slotSuggestionService;
+    private final com.smartcampus.booking.repository.BookingRepository bookingRepository;
 
     public BookingController(BookingService bookingService,
-                             SlotSuggestionService slotSuggestionService) {
+                             SlotSuggestionService slotSuggestionService,
+                             com.smartcampus.booking.repository.BookingRepository bookingRepository) {
         this.bookingService = bookingService;
         this.slotSuggestionService = slotSuggestionService;
+        this.bookingRepository = bookingRepository;
     }
+
+   
 
     // POST /api/bookings
     @PostMapping
@@ -97,5 +103,33 @@ public class BookingController {
         return ResponseEntity.ok(
             slotSuggestionService.suggestSlots(resourceId, date, durationMinutes)
         );
+    }
+
+    // GET /api/bookings/busy-hours?resourceId=1&days=14
+    // Returns hour-by-hour booking counts for heatmap
+    @GetMapping("/busy-hours")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<java.util.Map<Integer, Integer>> getBusyHours(
+            @RequestParam Long resourceId,
+            @RequestParam(defaultValue = "14") int days) {
+
+        java.util.Map<Integer, Integer> hourCounts = new java.util.LinkedHashMap<>();
+        for (int h = 8; h < 20; h++) hourCounts.put(h, 0);
+
+        java.time.LocalDate date = java.time.LocalDate.now();
+        for (int d = 0; d < days; d++) {
+            java.util.List<com.smartcampus.booking.entity.Booking> bookings =
+                bookingRepository.findApprovedBookingsByResourceAndDate(resourceId, date);
+
+            for (com.smartcampus.booking.entity.Booking b : bookings) {
+                int start = b.getStartTime().getHour();
+                int end = b.getEndTime().getHour();
+                for (int h = start; h < end && h < 20; h++) {
+                    hourCounts.merge(h, 1, Integer::sum);
+                }
+            }
+            date = date.plusDays(1);
+        }
+        return ResponseEntity.ok(hourCounts);
     }
 }
