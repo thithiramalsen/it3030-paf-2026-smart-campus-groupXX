@@ -132,4 +132,28 @@ public class BookingController {
         }
         return ResponseEntity.ok(hourCounts);
     }
+
+    // GET /api/bookings/daily-schedule?resourceId=1&date=2026-04-23
+    // Returns hour-by-hour bookings for a specific day
+    @GetMapping("/daily-schedule")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<java.util.Map<Integer, String>> getDailySchedule(
+            @RequestParam Long resourceId,
+            @RequestParam java.time.LocalDate date) {
+
+        java.util.Map<Integer, String> schedule = new java.util.LinkedHashMap<>();
+        for (int h = 8; h < 20; h++) schedule.put(h, "FREE");
+
+        java.util.List<com.smartcampus.booking.entity.Booking> bookings =
+            bookingRepository.findApprovedBookingsByResourceAndDate(resourceId, date);
+
+        for (com.smartcampus.booking.entity.Booking b : bookings) {
+            int start = b.getStartTime().getHour();
+            int end = b.getEndTime().getHour();
+            for (int h = start; h < end && h < 20; h++) {
+                schedule.put(h, "BOOKED");
+            }
+        }
+        return ResponseEntity.ok(schedule);
+    }
 }
