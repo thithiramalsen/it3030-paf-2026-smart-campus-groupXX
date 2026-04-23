@@ -84,7 +84,7 @@ export default function BookingForm({ onSuccess }) {
       setSuggestions([]);
     }
   }, [form.resourceId, form.bookingDate, duration]);
-  
+
   const handleResourceChange = (e) => {
     const id = e.target.value;
     const resource = resources.find((r) => String(r.id) === id);
@@ -126,8 +126,17 @@ export default function BookingForm({ onSuccess }) {
       setError('Please select an end time.');
       return;
     }
-    if (form.startTime >= form.endTime) {
+        if (form.startTime >= form.endTime) {
       setError('End time must be after start time. Please select a correct time range.');
+      return;
+    }
+
+    // Check if selected duration matches the chosen duration
+    const [startH, startM] = form.startTime.split(':').map(Number);
+    const [endH, endM] = form.endTime.split(':').map(Number);
+    const selectedMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+    if (selectedMinutes !== duration) {
+      setError(`You selected a duration of ${duration} minutes but your start and end time is ${selectedMinutes} minutes. Please adjust your time to match the selected duration of ${duration === 30 ? '30 minutes' : duration === 60 ? '1 hour' : duration === 90 ? '1.5 hours' : duration === 120 ? '2 hours' : '3 hours'}, or change the duration dropdown.`);
       return;
     }
     if (!form.purpose.trim()) {
