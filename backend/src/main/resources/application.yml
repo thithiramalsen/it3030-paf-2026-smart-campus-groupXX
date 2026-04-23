@@ -16,6 +16,16 @@ spring:
     # Allow either SPRING_DATASOURCE_USERNAME/PASSWORD or the older DB_USERNAME/DB_PASSWORD
     username: ${SPRING_DATASOURCE_USERNAME:${DB_USERNAME:smartcampus}}
     password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:smartcampus}}
+
+    hikari:
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      minimum-idle: 1
+      maximum-pool-size: 5
+      keepalive-time: 30000
+      connection-test-query: SELECT 1
+      
   jpa:
     hibernate:
       ddl-auto: update

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Clock3, ShieldCheck, UserCheck, UserX, Users } from 'lucide-react';
 import { adminApi } from '../api/adminApi';
 
+
 export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -79,6 +80,12 @@ export default function AdminDashboard() {
         <h3>Booking management</h3>
         <p>Review, approve, or reject booking requests from users.</p>
         <Link className="text-link" to="/admin/bookings">Go to booking management</Link>
+      </article>
+      
+      <article className="card">
+        <h3>Resource availability heatmap</h3>
+        <p>See which hours are busiest for any resource over the next 14 days.</p>
+        <Link className="text-link" to="/bookings/heatmap">View heatmap</Link>
       </article>
 
       {/* 🔥 YOUR ADDITION — TICKET MANAGEMENT */}

@@ -1,6 +1,7 @@
 package com.smartcampus.booking.entity;
 
 import com.smartcampus.booking.enums.BookingStatus;
+import com.smartcampus.resource.model.Resource;
 import com.smartcampus.user.User;
 import jakarta.persistence.*;
 import java.time.Instant;
@@ -20,11 +21,9 @@ public class Booking {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false)
-    private String resourceId;
-
-    @Column(nullable = false)
-    private String resourceName;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "resource_id", nullable = false)
+    private Resource resource;
 
     @Column(nullable = false)
     private LocalDate bookingDate;
@@ -63,11 +62,8 @@ public class Booking {
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
 
-    public String getResourceId() { return resourceId; }
-    public void setResourceId(String resourceId) { this.resourceId = resourceId; }
-
-    public String getResourceName() { return resourceName; }
-    public void setResourceName(String resourceName) { this.resourceName = resourceName; }
+    public Resource getResource() { return resource; }
+    public void setResource(Resource resource) { this.resource = resource; }
 
     public LocalDate getBookingDate() { return bookingDate; }
     public void setBookingDate(LocalDate bookingDate) { this.bookingDate = bookingDate; }

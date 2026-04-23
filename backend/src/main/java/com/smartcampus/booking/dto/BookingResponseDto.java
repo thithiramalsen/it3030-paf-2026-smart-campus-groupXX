@@ -9,8 +9,10 @@ import java.util.UUID;
 public class BookingResponseDto {
 
     private UUID id;
-    private String resourceId;
+    private Long resourceId;
     private String resourceName;
+    private String resourceLocation;
+    private String resourceType;
     private UUID userId;
     private String userName;
     private String userEmail;
@@ -28,11 +30,17 @@ public class BookingResponseDto {
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
 
-    public String getResourceId() { return resourceId; }
-    public void setResourceId(String resourceId) { this.resourceId = resourceId; }
+    public Long getResourceId() { return resourceId; }
+    public void setResourceId(Long resourceId) { this.resourceId = resourceId; }
 
     public String getResourceName() { return resourceName; }
     public void setResourceName(String resourceName) { this.resourceName = resourceName; }
+
+    public String getResourceLocation() { return resourceLocation; }
+    public void setResourceLocation(String resourceLocation) { this.resourceLocation = resourceLocation; }
+
+    public String getResourceType() { return resourceType; }
+    public void setResourceType(String resourceType) { this.resourceType = resourceType; }
 
     public UUID getUserId() { return userId; }
     public void setUserId(UUID userId) { this.userId = userId; }
