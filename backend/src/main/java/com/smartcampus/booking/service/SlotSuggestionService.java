@@ -16,7 +16,6 @@ public class SlotSuggestionService {
 
     private final BookingRepository bookingRepository;
 
-    private static final LocalTime DAY_START = LocalTime.of(8, 0);
     private static final LocalTime DAY_END = LocalTime.of(20, 0);
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("MMM dd");
@@ -25,27 +24,46 @@ public class SlotSuggestionService {
         this.bookingRepository = bookingRepository;
     }
 
-    public List<SlotSuggestionDto> suggestSlots(String resourceId, LocalDate fromDate, int durationMinutes) {
+    public List<SlotSuggestionDto> suggestSlots(Long resourceId, LocalDate fromDate, int durationMinutes) {
 
         List<SlotSuggestionDto> suggestions = new ArrayList<>();
         LocalDate searchDate = fromDate;
         int maxDays = 7;
 
         while (suggestions.size() < 3 && maxDays-- > 0) {
-            List<SlotSuggestionDto> daySlots = findSlotsOnDay(resourceId, searchDate, durationMinutes);
+            // For today, start from current time rounded up to next 30 min
+            LocalTime startFrom;
+            if (searchDate.equals(LocalDate.now())) {
+                LocalTime now = LocalTime.now();
+                // Round up to next 30 minute mark
+                int minutes = now.getMinute();
+                int roundedMinutes = minutes <= 30 ? 30 : 60;
+                if (roundedMinutes == 60) {
+                    startFrom = LocalTime.of(now.getHour() + 1, 0);
+                } else {
+                    startFrom = LocalTime.of(now.getHour(), 30);
+                }
+                // Make sure it's at least 8 AM
+                if (startFrom.isBefore(LocalTime.of(8, 0))) {
+                    startFrom = LocalTime.of(8, 0);
+                }
+            } else {
+                startFrom = LocalTime.of(8, 0);
+            }
+
+            List<SlotSuggestionDto> daySlots = findSlotsOnDay(resourceId, searchDate, durationMinutes, startFrom);
             suggestions.addAll(daySlots);
             searchDate = searchDate.plusDays(1);
         }
 
-        return suggestions.subList(0, Math.min(3, suggestions.size()));
+        return suggestions.subList(0, Math.min(5, suggestions.size())); // return up to 5 slots
     }
 
-    private List<SlotSuggestionDto> findSlotsOnDay(String resourceId, LocalDate date, int durationMinutes) {
+    private List<SlotSuggestionDto> findSlotsOnDay(Long resourceId, LocalDate date, int durationMinutes, LocalTime startFrom) {
 
         List<Booking> existing = bookingRepository
             .findApprovedBookingsByResourceAndDate(resourceId, date);
 
-        // Calculate busy level based on number of bookings on this day
         int bookingCount = existing.size();
         String busyLevel;
         if (bookingCount <= 1) {
@@ -57,12 +75,15 @@ public class SlotSuggestionService {
         }
 
         List<SlotSuggestionDto> available = new ArrayList<>();
-        LocalTime cursor = DAY_START;
+        LocalTime cursor = startFrom;
 
         for (Booking booked : existing) {
+            // Skip bookings that are already past our start point
+            if (booked.getEndTime().compareTo(cursor) <= 0) continue;
+
             if (cursor.plusMinutes(durationMinutes).compareTo(booked.getStartTime()) <= 0) {
                 available.add(buildSuggestion(date, cursor, cursor.plusMinutes(durationMinutes), bookingCount, busyLevel));
-                if (available.size() >= 3) return available;
+                if (available.size() >= 5) return available;
             }
             if (booked.getEndTime().isAfter(cursor)) {
                 cursor = booked.getEndTime();

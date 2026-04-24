@@ -6,11 +6,8 @@ import java.time.LocalTime;
 
 public class BookingRequestDto {
 
-    @NotBlank(message = "Resource ID is required")
-    private String resourceId;
-
-    @NotBlank(message = "Resource name is required")
-    private String resourceName;
+    @NotNull(message = "Resource ID is required")
+    private Long resourceId;
 
     @NotNull(message = "Booking date is required")
     @FutureOrPresent(message = "Booking date cannot be in the past")
@@ -29,11 +26,8 @@ public class BookingRequestDto {
     @Min(value = 1, message = "Expected attendees must be at least 1")
     private Integer expectedAttendees;
 
-    public String getResourceId() { return resourceId; }
-    public void setResourceId(String resourceId) { this.resourceId = resourceId; }
-
-    public String getResourceName() { return resourceName; }
-    public void setResourceName(String resourceName) { this.resourceName = resourceName; }
+    public Long getResourceId() { return resourceId; }
+    public void setResourceId(Long resourceId) { this.resourceId = resourceId; }
 
     public LocalDate getBookingDate() { return bookingDate; }
     public void setBookingDate(LocalDate bookingDate) { this.bookingDate = bookingDate; }
