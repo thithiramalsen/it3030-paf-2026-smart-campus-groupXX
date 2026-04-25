@@ -32,9 +32,9 @@ public class TicketController {
                 .body(ticketService.createTicket(dto));
     }
 
-    // ✅ GET ALL (ADMIN)
+    // ✅ GET ALL (ADMIN, MANAGER)
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public ResponseEntity<List<TicketResponseDto>> getAllTickets(
             @RequestParam(required = false) TicketStatus status) {
 

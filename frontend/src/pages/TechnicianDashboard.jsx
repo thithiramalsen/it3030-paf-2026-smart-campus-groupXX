@@ -1,64 +1,130 @@
-import { useState } from 'react';
-import { ClipboardCheck, LayoutDashboard, ShieldAlert, Wrench } from 'lucide-react';
-import AssignedTickets from '../features/tickets/AssignedTickets';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ClipboardCheck, Clock3, LayoutDashboard, ShieldAlert } from 'lucide-react';
+import { getAssignedTickets } from '../api/ticketsApi';
 
 export default function TechnicianDashboard() {
-  const [tab, setTab] = useState('overview');
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const loadAssignedTickets = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await getAssignedTickets();
+      setTickets(res.data || []);
+    } catch {
+      setError('Failed to load assigned tickets.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadAssignedTickets();
+  }, []);
+
+  const activeTickets = useMemo(
+    () => tickets.filter((ticket) => ticket.status !== 'RESOLVED' && ticket.status !== 'CLOSED'),
+    [tickets]
+  );
+
+  const inProgressCount = useMemo(
+    () => tickets.filter((ticket) => ticket.status === 'IN_PROGRESS').length,
+    [tickets]
+  );
+
+  const resolvedCount = useMemo(
+    () => tickets.filter((ticket) => ticket.status === 'RESOLVED' || ticket.status === 'CLOSED').length,
+    [tickets]
+  );
 
   return (
     <div className="page-block">
       <section className="page-hero">
         <p className="kicker">Field Operations</p>
         <h1 className="page-hero-title">Technician Dashboard</h1>
-        <p className="muted">Stay on top of incident response, maintenance tasks, and service reports.</p>
+        <p className="muted">Track your work queue, close incidents faster, and keep maintenance response predictable.</p>
       </section>
 
-      <div className="inline-actions tabs">
-        <button className={tab === 'overview' ? 'tab active' : 'tab'} onClick={() => setTab('overview')}>Overview</button>
-        <button className={tab === 'tickets' ? 'tab active' : 'tab'} onClick={() => setTab('tickets')}>Tickets</button>
-        <button className={tab === 'maintenance' ? 'tab active' : 'tab'} onClick={() => setTab('maintenance')}>Maintenance</button>
-        <button className={tab === 'reports' ? 'tab active' : 'tab'} onClick={() => setTab('reports')}>Reports</button>
+      <div className="card-grid four">
+        <article className="card stat">
+          <div className="feature-icon brand"><LayoutDashboard size={18} /></div>
+          <h3>Total assigned</h3>
+          <p>{tickets.length}</p>
+          <div className="stat-line" />
+        </article>
+        <article className="card stat">
+          <div className="feature-icon sky"><ClipboardCheck size={18} /></div>
+          <h3>Active queue</h3>
+          <p>{activeTickets.length}</p>
+          <div className="stat-line" />
+        </article>
+        <article className="card stat">
+          <div className="feature-icon amber"><Clock3 size={18} /></div>
+          <h3>In progress</h3>
+          <p>{inProgressCount}</p>
+          <div className="stat-line" />
+        </article>
+        <article className="card stat">
+          <div className="feature-icon rose"><ShieldAlert size={18} /></div>
+          <h3>Completed</h3>
+          <p>{resolvedCount}</p>
+          <div className="stat-line" />
+        </article>
       </div>
 
-      {tab === 'overview' && (
-        <div className="card-grid two">
-          <article className="card interactive">
-            <div className="feature-icon brand">
-              <LayoutDashboard size={18} />
-            </div>
-            <h3>Shift overview</h3>
-            <p className="feature-meta">Review active requests, pending follow-ups, and your current assignments.</p>
-          </article>
-          <article className="card interactive">
-            <div className="feature-icon sky">
-              <Wrench size={18} />
-            </div>
-            <h3>Maintenance queue</h3>
-            <p className="feature-meta">Keep equipment service windows and preventive checks on schedule.</p>
-          </article>
+      <article className="card">
+        <h3>Quick actions</h3>
+        <p className="feature-meta">Use the same operational controls pattern used in other dashboards.</p>
+        <div className="inline-actions">
+          <button className="btn-primary" onClick={loadAssignedTickets}>Refresh Queue</button>
+          <button className="btn-outline" onClick={() => navigate('/resources')}>Browse Resources</button>
+          <button className="btn-outline" onClick={() => navigate('/notifications')}>Open Notifications</button>
         </div>
-      )}
+      </article>
 
-      {tab === 'tickets' && (
-        <AssignedTickets />
-      )}
+      <article className="card">
+        <div className="inline-actions spread">
+          <h3>Assigned ticket queue</h3>
+          <span className="muted">{activeTickets.length} active</span>
+        </div>
 
-      {tab === 'maintenance' && (
-        <article className="card">
-          <div className="feature-icon rose">
-            <ShieldAlert size={18} />
+        {loading && <p className="muted">Loading assigned tickets...</p>}
+        {error && <p className="muted">{error}</p>}
+
+        {!loading && !error && activeTickets.length === 0 && (
+          <p className="muted">No active tickets assigned right now.</p>
+        )}
+
+        {!loading && !error && activeTickets.length > 0 && (
+          <div className="stack-list">
+            {activeTickets.slice(0, 8).map((ticket) => (
+              <article
+                key={ticket.id}
+                className="card interactive"
+                onClick={() => navigate(`/tickets/${ticket.id}`)}
+                style={{ cursor: 'pointer' }}
+              >
+                <div className="inline-actions spread">
+                  <h4>{ticket.title}</h4>
+                  <strong>{ticket.status}</strong>
+                </div>
+                <p className="muted">{ticket.description}</p>
+                <div className="inline-actions">
+                  <span><strong>Priority:</strong> {ticket.priority}</span>
+                  <span>
+                    <strong>Resource:</strong> {ticket.resourceName || '-'}
+                    {ticket.resourceLocation ? ` (${ticket.resourceLocation})` : ''}
+                  </span>
+                </div>
+              </article>
+            ))}
           </div>
-          <h3>Maintenance controls</h3>
-          <p className="feature-meta">Track critical assets that need urgent repairs or inspections.</p>
-        </article>
-      )}
-
-      {tab === 'reports' && (
-        <article className="card">
-          <h3>Reports</h3>
-          <p className="feature-meta">Weekly diagnostics and task completion metrics will appear here.</p>
-        </article>
-      )}
+        )}
+      </article>
     </div>
   );
 }

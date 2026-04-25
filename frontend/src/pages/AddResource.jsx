@@ -13,7 +13,7 @@ export default function AddResource() {
         setError(null);
         try {
             await createResource(formData);
-            navigate('/manager/dashboard', { state: { tab: 'resources' } });
+            navigate('/manager/resources');
         } catch (err) {
             setError('Failed to create resource. Please try again.');
         } finally {
@@ -22,7 +22,7 @@ export default function AddResource() {
     };
 
     const handleCancel = () => {
-        navigate('/manager/dashboard');
+        navigate('/manager/resources');
     };
 
     return (
@@ -30,7 +30,7 @@ export default function AddResource() {
 
             {/* Back link */}
             <div
-                onClick={() => navigate('/manager/dashboard')}
+                onClick={() => navigate('/manager/resources')}
                 style={{
                     display: 'inline-flex', alignItems: 'center', gap: 6,
                     fontSize: 13, color: '#555', cursor: 'pointer',
