@@ -68,7 +68,7 @@ public class CommentService {
         Set<UUID> recipients = new HashSet<>();
         findTicketCreator(ticket).ifPresent(user -> recipients.add(user.getId()));
         findAssignedTechnician(ticket).ifPresent(user -> recipients.add(user.getId()));
-        userRepository.findByRole(Role.ADMIN).forEach(admin -> recipients.add(admin.getId()));
+        addPrivilegedRecipients(recipients);
         if (!isAdmin(currentUser)) {
             recipients.remove(currentUser.getId());
         }
@@ -151,6 +151,11 @@ public class CommentService {
         }
 
         return actor + " commented on ticket #" + ticketId + ": " + sanitized;
+    }
+
+    private void addPrivilegedRecipients(Set<UUID> recipients) {
+        userRepository.findByRole(Role.ADMIN).forEach(user -> recipients.add(user.getId()));
+        userRepository.findByRole(Role.MANAGER).forEach(user -> recipients.add(user.getId()));
     }
 
     private boolean isAdmin(User user) {

@@ -2,6 +2,7 @@ package com.smartcampus.incident.entity;
 
 import com.smartcampus.resource.model.Resource;
 import jakarta.persistence.*;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +31,8 @@ public class Ticket {
 
     @Enumerated(EnumType.STRING)
     private TicketPriority priority;
+
+    private Instant createdAt = Instant.now();
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "resource_id")
@@ -110,6 +113,14 @@ public class Ticket {
 
     public void setPriority(TicketPriority priority) {
         this.priority = priority;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 
     public Resource getResource() {
