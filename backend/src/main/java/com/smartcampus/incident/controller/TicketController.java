@@ -106,7 +106,7 @@ public class TicketController {
 
     // 🔥 ✅ DELETE TICKET
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteTicket(@PathVariable Long id) {
 
         ticketService.deleteTicket(id);

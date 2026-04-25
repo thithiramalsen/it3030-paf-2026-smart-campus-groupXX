@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import org.springframework.security.access.AccessDeniedException;
 
 @Service
 public class TicketService {
@@ -305,11 +306,20 @@ public class TicketService {
 
     public void deleteTicket(Long id) {
 
-    if (!ticketRepository.existsById(id)) {
-        throw new RuntimeException("Ticket not found");
+    User currentUser = currentUserService.getCurrentUser()
+        .orElseThrow(() -> new RuntimeException("You must be logged in to delete a ticket"));
+
+    Ticket ticket = ticketRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Ticket not found"));
+
+    boolean isOwner = ticket.getCreatedByEmail() != null
+        && ticket.getCreatedByEmail().equalsIgnoreCase(currentUser.getEmail());
+
+    if (!isAdmin(currentUser) && !isOwner) {
+        throw new AccessDeniedException("You do not have permission to delete this ticket");
     }
 
-    ticketRepository.deleteById(id);
+    ticketRepository.delete(ticket);
     }
 
     private Optional<User> findTicketCreator(Ticket ticket) {

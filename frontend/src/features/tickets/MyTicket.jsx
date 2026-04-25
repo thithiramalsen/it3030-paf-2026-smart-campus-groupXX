@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getMyTickets } from "../../api/ticketsApi"; // ✅ use API
+import { deleteTicket, getMyTickets } from "../../api/ticketsApi"; // ✅ use API
 
 export default function MyTicket() {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -64,6 +65,25 @@ export default function MyTicket() {
     inProgress: tickets.filter((t) => t.status === "IN_PROGRESS").length,
     resolved: tickets.filter((t) => t.status === "RESOLVED").length,
     closed: tickets.filter((t) => t.status === "CLOSED").length,
+  };
+
+  const handleDelete = async (ticketId, event) => {
+    event.stopPropagation();
+
+    if (!window.confirm("Are you sure you want to delete this ticket?")) {
+      return;
+    }
+
+    try {
+      setDeletingId(ticketId);
+      await deleteTicket(ticketId);
+      setTickets((prev) => prev.filter((ticket) => ticket.id !== ticketId));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete ticket");
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   return (
@@ -224,6 +244,22 @@ export default function MyTicket() {
                   >
                     {ticket.priority} PRIORITY
                   </span>
+                  <button
+                    onClick={(event) => handleDelete(ticket.id, event)}
+                    disabled={deletingId === ticket.id}
+                    style={{
+                      borderRadius: 999,
+                      border: "1px solid #fecaca",
+                      background: deletingId === ticket.id ? "#fca5a5" : "#ef4444",
+                      color: "#fff",
+                      padding: "5px 10px",
+                      fontWeight: 700,
+                      fontSize: 12,
+                      cursor: deletingId === ticket.id ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    {deletingId === ticket.id ? "Deleting..." : "Delete"}
+                  </button>
                 </div>
               </div>
 
