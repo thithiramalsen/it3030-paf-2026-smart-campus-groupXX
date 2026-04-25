@@ -19,6 +19,8 @@ public class Ticket {
 
     private String createdByEmail;
 
+    private String createdByName;
+
     private String resolutionNotes;
 
     private String description;
@@ -81,6 +83,14 @@ public class Ticket {
 
     public void setCreatedByEmail(String createdByEmail) {
         this.createdByEmail = createdByEmail;
+    }
+
+    public String getCreatedByName() {
+        return createdByName;
+    }
+
+    public void setCreatedByName(String createdByName) {
+        this.createdByName = createdByName;
     }
 
     public TicketStatus getStatus() {

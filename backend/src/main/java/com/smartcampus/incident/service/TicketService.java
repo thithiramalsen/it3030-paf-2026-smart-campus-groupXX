@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import org.springframework.security.access.AccessDeniedException;
 
 @Service
 public class TicketService {
@@ -61,6 +62,7 @@ public class TicketService {
         t.setResource(resource);
         t.setStatus(TicketStatus.OPEN);
         t.setCreatedByEmail(currentUser.getEmail());
+        t.setCreatedByName(displayName(currentUser));
 
         ticketRepository.save(t);
 
@@ -278,6 +280,21 @@ public class TicketService {
         dto.setCategory(t.getCategory());
         dto.setPriority(t.getPriority());
         dto.setCreatedAt(t.getCreatedAt());
+        dto.setCreatedByEmail(t.getCreatedByEmail());
+
+        if (t.getCreatedByName() != null && !t.getCreatedByName().isBlank()) {
+            dto.setCreatedByName(t.getCreatedByName().trim());
+        }
+
+        findTicketCreator(t).ifPresentOrElse(
+            user -> dto.setCreatedByName(displayName(user)),
+            () -> {
+                if (dto.getCreatedByName() == null || dto.getCreatedByName().isBlank()) {
+                    dto.setCreatedByName(t.getCreatedByEmail());
+                }
+            }
+        );
+
         if (t.getResource() != null) {
             dto.setResourceId(t.getResource().getId());
             dto.setResourceName(t.getResource().getName());
@@ -289,11 +306,20 @@ public class TicketService {
 
     public void deleteTicket(Long id) {
 
-    if (!ticketRepository.existsById(id)) {
-        throw new RuntimeException("Ticket not found");
+    User currentUser = currentUserService.getCurrentUser()
+        .orElseThrow(() -> new RuntimeException("You must be logged in to delete a ticket"));
+
+    Ticket ticket = ticketRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Ticket not found"));
+
+    boolean isOwner = ticket.getCreatedByEmail() != null
+        && ticket.getCreatedByEmail().equalsIgnoreCase(currentUser.getEmail());
+
+    if (!isAdmin(currentUser) && !isOwner) {
+        throw new AccessDeniedException("You do not have permission to delete this ticket");
     }
 
-    ticketRepository.deleteById(id);
+    ticketRepository.delete(ticket);
     }
 
     private Optional<User> findTicketCreator(Ticket ticket) {

@@ -14,6 +14,8 @@ public class TicketResponseDto {
     private TicketStatus status;
     private TicketCategory category;
     private TicketPriority priority;
+    private String createdByName;
+    private String createdByEmail;
     private Long resourceId;
     private String resourceName;
     private String resourceLocation;
@@ -51,6 +53,14 @@ public class TicketResponseDto {
 
     public TicketPriority getPriority() {
         return priority;
+    }
+
+    public String getCreatedByName() {
+        return createdByName;
+    }
+
+    public String getCreatedByEmail() {
+        return createdByEmail;
     }
 
     public Long getResourceId() {
@@ -101,6 +111,14 @@ public class TicketResponseDto {
 
     public void setPriority(TicketPriority priority) {
         this.priority = priority;
+    }
+
+    public void setCreatedByName(String createdByName) {
+        this.createdByName = createdByName;
+    }
+
+    public void setCreatedByEmail(String createdByEmail) {
+        this.createdByEmail = createdByEmail;
     }
 
     public void setResourceId(Long resourceId) {
