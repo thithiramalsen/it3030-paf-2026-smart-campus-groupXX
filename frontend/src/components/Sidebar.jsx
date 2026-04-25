@@ -37,7 +37,7 @@ export default function Sidebar() {
     switch (user?.role) {
       case 'USER':
         return [
-          item('/dashboard', 'User Dashboard', LayoutDashboard),
+          item('/dashboard', 'Dashboard', LayoutDashboard),
           item('/bookings/my', 'My Bookings', CalendarClock),
           item('/bookings/new', 'New Booking', CalendarPlus),
           item('/bookings/calendar', 'Booking Calendar', CalendarDays),
@@ -47,21 +47,20 @@ export default function Sidebar() {
         ];
       case 'TECHNICIAN':
         return [
-          item('/technician/dashboard', 'Technician Dashboard', Wrench),
+          item('/technician/dashboard', 'Dashboard', Wrench),
         ];
       case 'MANAGER':
         return [
-          item('/technician/dashboard', 'Technician Dashboard', Wrench),
-          item('/manager/dashboard', 'Manager Dashboard', Compass),
-          item('/manager/resources', 'Manage Resources', HardDrive),
+          item('/manager/dashboard', 'Dashboard', Compass),
+          item('/manager/resources', 'Resource Administration', HardDrive),
         ];
       case 'ADMIN':
         return [
-          item('/admin', 'Admin Dashboard', ShieldCheck),
+          item('/admin', 'Dashboard', ShieldCheck),
           item('/admin/users', 'Manage Users', Users),
           item('/admin/bookings', 'Manage Bookings', CalendarClock),
           item('/admin/tickets', 'Manage Tickets', Ticket),
-          item('/manager/resources', 'Manage Resources', HardDrive),
+          item('/manager/resources', 'Resource Administration', HardDrive),
         ];
       default:
         return [];

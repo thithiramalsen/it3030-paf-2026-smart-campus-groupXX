@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import { adminApi } from '../api/adminApi';
 import ApprovalDialog from '../components/ApprovalDialog';
+import DeleteUserDialog from '../components/DeleteUserDialog';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([]);
@@ -10,6 +11,8 @@ export default function AdminUsersPage() {
   const [tab, setTab] = useState('all');
   const [query, setQuery] = useState('');
   const [dialogUser, setDialogUser] = useState(null);
+  const [deleteCandidate, setDeleteCandidate] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [roleDraft, setRoleDraft] = useState('USER');
 
@@ -61,15 +64,23 @@ export default function AdminUsersPage() {
     }
   };
 
-  const removeUser = async (userId) => {
-    const ok = window.confirm('Delete this user permanently?');
-    if (!ok) return;
+  const promptDeleteUser = (user) => {
+    setDeleteCandidate(user);
+  };
+
+  const removeUser = async () => {
+    if (!deleteCandidate?.id) return;
+
+    setDeleting(true);
     try {
-      await adminApi.removeUser(userId);
-      setUsers((prev) => prev.filter((u) => u.id !== userId));
+      await adminApi.removeUser(deleteCandidate.id);
+      setUsers((prev) => prev.filter((u) => u.id !== deleteCandidate.id));
+      setDeleteCandidate(null);
       setError('');
-    } catch {
-      setError('Could not delete user.');
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Could not delete user.');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -140,7 +151,7 @@ export default function AdminUsersPage() {
                   ) : (
                     <button className="btn-outline" onClick={() => startEditRole(u)}>Edit role</button>
                   )}
-                  <button className="btn-danger" onClick={() => removeUser(u.id)}>Delete</button>
+                  <button className="btn-danger" onClick={() => promptDeleteUser(u)}>Delete</button>
                 </td>
               </tr>
             ))}
@@ -153,6 +164,17 @@ export default function AdminUsersPage() {
         candidate={dialogUser}
         onClose={() => setDialogUser(null)}
         onCompleted={loadUsers}
+      />
+
+      <DeleteUserDialog
+        open={Boolean(deleteCandidate)}
+        candidate={deleteCandidate}
+        busy={deleting}
+        onCancel={() => {
+          if (deleting) return;
+          setDeleteCandidate(null);
+        }}
+        onConfirm={removeUser}
       />
     </div>
   );

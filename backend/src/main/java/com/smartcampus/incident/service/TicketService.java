@@ -67,7 +67,7 @@ public class TicketService {
         String actor = displayName(currentUser);
         String createdMessage = "New ticket #" + t.getId() + " submitted by " + actor + ": " + t.getTitle();
         Set<UUID> adminRecipients = new HashSet<>();
-        userRepository.findByRole(Role.ADMIN).forEach(admin -> adminRecipients.add(admin.getId()));
+        addPrivilegedRecipients(adminRecipients);
         if (!isAdmin(currentUser)) {
             adminRecipients.remove(currentUser.getId());
         }
@@ -160,7 +160,7 @@ public class TicketService {
         Set<UUID> recipients = new HashSet<>();
         findTicketCreator(ticket).ifPresent(user -> recipients.add(user.getId()));
         findAssignedTechnician(ticket).ifPresent(user -> recipients.add(user.getId()));
-        userRepository.findByRole(Role.ADMIN).forEach(admin -> recipients.add(admin.getId()));
+        addPrivilegedRecipients(recipients);
         if (!isAdmin(currentUser)) {
             recipients.remove(currentUser.getId());
         }
@@ -255,6 +255,7 @@ public class TicketService {
         Set<UUID> recipients = new HashSet<>();
         findTicketCreator(ticket).ifPresent(user -> recipients.add(user.getId()));
         findAssignedTechnician(ticket).ifPresent(user -> recipients.add(user.getId()));
+        addPrivilegedRecipients(recipients);
         if (!isAdmin(currentUser)) {
             recipients.remove(currentUser.getId());
         }
@@ -276,6 +277,7 @@ public class TicketService {
         dto.setStatus(t.getStatus());
         dto.setCategory(t.getCategory());
         dto.setPriority(t.getPriority());
+        dto.setCreatedAt(t.getCreatedAt());
         if (t.getResource() != null) {
             dto.setResourceId(t.getResource().getId());
             dto.setResourceName(t.getResource().getName());
@@ -322,6 +324,11 @@ public class TicketService {
             return user.getName().trim();
         }
         return user.getEmail();
+    }
+
+    private void addPrivilegedRecipients(Set<UUID> recipients) {
+        userRepository.findByRole(Role.ADMIN).forEach(user -> recipients.add(user.getId()));
+        userRepository.findByRole(Role.MANAGER).forEach(user -> recipients.add(user.getId()));
     }
 
     private boolean isAdmin(User user) {

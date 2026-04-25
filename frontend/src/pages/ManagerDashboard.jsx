@@ -1,74 +1,139 @@
-import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { BarChart3, ClipboardList, LayoutDashboard, Wrench } from 'lucide-react';
-import ResourceManagement from '../pages/ResourceManagement';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ClipboardList, Clock3, HardDrive, LayoutDashboard } from 'lucide-react';
+import { getAllTickets } from '../api/ticketsApi';
 
 export default function ManagerDashboard() {
-  const [tab, setTab] = useState('overview');
-  const location = useLocation();
+  const [tickets, setTickets] = useState([]);
+  const [ticketsLoading, setTicketsLoading] = useState(true);
+  const [ticketsError, setTicketsError] = useState('');
+  const navigate = useNavigate();
 
-  // When navigating back from Add/Edit pages, auto-select the resources tab
-  useEffect(() => {
-    if (location.state?.tab) {
-      setTab(location.state.tab);
+  const loadTickets = async () => {
+    setTicketsLoading(true);
+    setTicketsError('');
+    try {
+      const res = await getAllTickets();
+      setTickets(res.data || []);
+    } catch (err) {
+      const status = err?.response?.status;
+      if (status === 401) {
+        setTicketsError('Session expired. Please sign in again.');
+      } else if (status === 403) {
+        setTicketsError('You do not have permission to view ticket oversight.');
+      } else if (status && status >= 500) {
+        setTicketsError('Server error while loading tickets. Please try again.');
+      } else {
+        setTicketsError('Failed to load tickets. Check backend availability and try again.');
+      }
+    } finally {
+      setTicketsLoading(false);
     }
-  }, [location.state]);
+  };
+
+  useEffect(() => {
+    loadTickets();
+  }, []);
+
+  const activeTickets = useMemo(
+    () => tickets.filter((ticket) => ticket.status === 'OPEN' || ticket.status === 'IN_PROGRESS'),
+    [tickets]
+  );
+
+  const unassignedTickets = useMemo(
+    () => tickets.filter((ticket) => !ticket.technicianAssigned),
+    [tickets]
+  );
+
+  const resolvedTickets = useMemo(
+    () => tickets.filter((ticket) => ticket.status === 'RESOLVED' || ticket.status === 'CLOSED'),
+    [tickets]
+  );
 
   return (
     <div className="page-block">
       <section className="page-hero">
         <p className="kicker">Management Console</p>
         <h1 className="page-hero-title">Manager Dashboard</h1>
-        <p className="muted">Coordinate teams, resources, and service quality from a single view.</p>
+        <p className="muted">Coordinate ticket priorities and resource readiness from one consistent operations view.</p>
       </section>
 
-      <div className="inline-actions tabs">
-        <button className={tab === 'overview'   ? 'tab active' : 'tab'} onClick={() => setTab('overview')}>Overview</button>
-        <button className={tab === 'tickets'    ? 'tab active' : 'tab'} onClick={() => setTab('tickets')}>Tickets</button>
-        <button className={tab === 'resources'  ? 'tab active' : 'tab'} onClick={() => setTab('resources')}>Resources</button>
-        <button className={tab === 'analytics'  ? 'tab active' : 'tab'} onClick={() => setTab('analytics')}>Analytics</button>
+      <div className="card-grid four">
+        <article className="card stat">
+          <div className="feature-icon brand"><LayoutDashboard size={18} /></div>
+          <h3>Total tickets</h3>
+          <p>{tickets.length}</p>
+          <div className="stat-line" />
+        </article>
+        <article className="card stat">
+          <div className="feature-icon sky"><ClipboardList size={18} /></div>
+          <h3>Active queue</h3>
+          <p>{activeTickets.length}</p>
+          <div className="stat-line" />
+        </article>
+        <article className="card stat">
+          <div className="feature-icon amber"><Clock3 size={18} /></div>
+          <h3>Unassigned</h3>
+          <p>{unassignedTickets.length}</p>
+          <div className="stat-line" />
+        </article>
+        <article className="card stat">
+          <div className="feature-icon rose"><HardDrive size={18} /></div>
+          <h3>Resolved/closed</h3>
+          <p>{resolvedTickets.length}</p>
+          <div className="stat-line" />
+        </article>
       </div>
 
-      {tab === 'overview' && (
-        <div className="card-grid two">
-          <article className="card interactive">
-            <div className="feature-icon brand">
-              <LayoutDashboard size={18} />
-            </div>
-            <h3>Operational overview</h3>
-            <p className="feature-meta">Monitor team load, pending tasks, and service trends in one dashboard.</p>
-          </article>
-          <article className="card interactive">
-            <div className="feature-icon sky">
-              <Wrench size={18} />
-            </div>
-            <h3>Maintenance readiness</h3>
-            <p className="feature-meta">Track escalations and ensure critical resources are always available.</p>
-          </article>
+      <article className="card">
+        <h3>Quick management</h3>
+        <p className="feature-meta">Use the same concise action panel pattern across role dashboards.</p>
+        <div className="inline-actions">
+          <button className="btn-primary" onClick={() => navigate('/manager/resources')}>Manage Resources</button>
+          <button className="btn-outline" onClick={loadTickets}>Refresh Ticket Queue</button>
+          <button className="btn-outline" onClick={() => navigate('/notifications')}>Open Notifications</button>
         </div>
-      )}
+      </article>
 
-      {tab === 'tickets' && (
-        <article className="card">
-          <div className="feature-icon amber">
-            <ClipboardList size={18} />
+      <article className="card">
+        <div className="inline-actions spread">
+          <h3>Ticket oversight</h3>
+          <span className="muted">{activeTickets.length} active</span>
+        </div>
+        <p className="feature-meta">Review current queue health and escalation pressure without dashboard duplication.</p>
+
+        {ticketsLoading && <p className="muted">Loading tickets...</p>}
+        {ticketsError && <p className="muted">{ticketsError}</p>}
+
+        {!ticketsLoading && !ticketsError && activeTickets.length === 0 && (
+          <p className="muted">No active tickets available.</p>
+        )}
+
+        {!ticketsLoading && !ticketsError && activeTickets.length > 0 && (
+          <div className="stack-list">
+            {activeTickets.slice(0, 8).map((ticket) => (
+              <div key={ticket.id} className="card">
+                <div className="inline-actions spread">
+                  <h4>{ticket.title}</h4>
+                  <strong>{ticket.status}</strong>
+                </div>
+                <p className="muted">{ticket.description}</p>
+                <div className="inline-actions">
+                  <span><strong>Priority:</strong> {ticket.priority}</span>
+                  <span><strong>Category:</strong> {ticket.category}</span>
+                  <span>
+                    <strong>Resource:</strong> {ticket.resourceName || '-'}
+                    {ticket.resourceLocation ? ` (${ticket.resourceLocation})` : ''}
+                  </span>
+                </div>
+                <p className="muted" style={{ marginTop: 8 }}>
+                  Assigned: {ticket.technicianAssigned || 'Not assigned'}
+                </p>
+              </div>
+            ))}
           </div>
-          <h3>Ticket operations</h3>
-          <p className="feature-meta">Review incoming issues, prioritize response windows, and coordinate technicians.</p>
-        </article>
-      )}
-
-      {tab === 'resources' && <ResourceManagement />}
-
-      {tab === 'analytics' && (
-        <article className="card">
-          <div className="feature-icon rose">
-            <BarChart3 size={18} />
-          </div>
-          <h3>Analytics module</h3>
-          <p className="feature-meta">Usage heatmaps and trend insights are ready for backend integration.</p>
-        </article>
-      )}
+        )}
+      </article>
     </div>
   );
 }

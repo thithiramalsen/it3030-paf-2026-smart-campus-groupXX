@@ -42,7 +42,7 @@ export default function EditResource() {
         setError(null);
         try {
             await updateResource(id, formData);
-            navigate('/manager/dashboard', { state: { tab: 'resources' } });
+            navigate('/manager/resources');
         } catch (err) {
             setError('Failed to update resource. Please try again.');
         } finally {
@@ -51,7 +51,7 @@ export default function EditResource() {
     };
 
     const handleCancel = () => {
-        navigate('/manager/dashboard', { state: { tab: 'resources' } });
+        navigate('/manager/resources');
     };
 
     // Loading state while fetching resource

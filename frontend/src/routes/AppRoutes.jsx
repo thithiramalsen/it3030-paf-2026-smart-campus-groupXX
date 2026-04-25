@@ -103,7 +103,7 @@ export default function AppRoutes() {
           <Route
             path="/technician/dashboard"
             element={
-              <RoleGuard allowedRoles={['TECHNICIAN', 'MANAGER', 'ADMIN']}>
+              <RoleGuard allowedRoles={['TECHNICIAN', 'ADMIN']}>
                 <ShellLayout>
                   <TechnicianDashboard />
                 </ShellLayout>

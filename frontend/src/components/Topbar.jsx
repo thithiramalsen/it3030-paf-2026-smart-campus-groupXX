@@ -4,6 +4,8 @@ import { useAuth } from '../features/auth/AuthContext';
 import { notificationApi } from '../api/notificationApi';
 import NotificationTray from './NotificationTray';
 
+const NOTIFICATION_POLL_MS = 5000;
+
 export default function Topbar() {
   const { user, logout } = useAuth();
   const [unread, setUnread] = useState(0);
@@ -31,11 +33,20 @@ export default function Topbar() {
     };
 
     loadUnread();
-    const timer = setInterval(loadUnread, 30000);
+
+    const refreshUnread = () => {
+      loadUnread();
+    };
+
+    const timer = setInterval(loadUnread, NOTIFICATION_POLL_MS);
+    window.addEventListener('focus', refreshUnread);
+    window.addEventListener('notifications:changed', refreshUnread);
 
     return () => {
       alive = false;
       clearInterval(timer);
+      window.removeEventListener('focus', refreshUnread);
+      window.removeEventListener('notifications:changed', refreshUnread);
     };
   }, []);
 

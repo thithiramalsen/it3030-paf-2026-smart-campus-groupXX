@@ -482,6 +482,15 @@ button:disabled {
   background: #fff;
 }
 
+.tray-item.clickable {
+  cursor: pointer;
+}
+
+.tray-item.clickable:hover {
+  border-color: #bad0d8;
+  box-shadow: 0 8px 16px rgba(17, 37, 49, 0.08);
+}
+
 .tray-item.is-unread {
   background: #f0f9ff;
   border-color: #bae6fd;
@@ -785,6 +794,50 @@ th {
   flex-wrap: wrap;
 }
 
+.danger-dialog {
+  border-color: #fecdd3;
+  background:
+    radial-gradient(circle at 95% 10%, rgba(244, 63, 94, 0.1), transparent 40%),
+    linear-gradient(180deg, #fff, #fff7f8);
+}
+
+.danger-dialog-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.danger-dialog-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: #ffe4e6;
+  color: #be123c;
+  border: 1px solid #fecdd3;
+}
+
+.danger-dialog-text {
+  color: #37464d;
+  line-height: 1.6;
+}
+
+.danger-dialog-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: #64737b;
+  font-size: 0.85rem;
+}
+
+.danger-dialog-meta span {
+  border: 1px solid #fbcfe8;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: #fff;
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -809,6 +862,10 @@ th {
 
 .card-message {
   color: #2e3f45;
+}
+
+.notification-card-link {
+  cursor: pointer;
 }
 
 .card-meta {

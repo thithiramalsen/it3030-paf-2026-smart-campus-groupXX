@@ -6,10 +6,23 @@ import {
 } from "../../api/ticketsApi";
 
 const STATUS_OPTIONS = ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED", "ALL"];
+const SORT_OPTIONS = [
+  { value: "DATE_DESC", label: "Newest first" },
+  { value: "DATE_ASC", label: "Oldest first" },
+  { value: "PRIORITY_DESC", label: "Priority: High to Low" },
+  { value: "PRIORITY_ASC", label: "Priority: Low to High" },
+];
+
+const PRIORITY_WEIGHT = {
+  LOW: 1,
+  MEDIUM: 2,
+  HIGH: 3,
+};
 
 export default function AdminTickets() {
   const [tickets, setTickets] = useState([]);
   const [filter, setFilter] = useState("OPEN");
+  const [sortBy, setSortBy] = useState("DATE_DESC");
   const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
@@ -35,6 +48,32 @@ export default function AdminTickets() {
       ? tickets
       : tickets.filter((t) => t.status === filter);
 
+  const getDateValue = (ticket) => {
+    if (ticket.createdAt) {
+      const parsed = Date.parse(ticket.createdAt);
+      if (!Number.isNaN(parsed)) return parsed;
+    }
+    return Number(ticket.id) || 0;
+  };
+
+  const getPriorityValue = (ticket) => {
+    return PRIORITY_WEIGHT[ticket.priority] || 0;
+  };
+
+  const sortedTickets = [...filteredTickets].sort((a, b) => {
+    switch (sortBy) {
+      case "DATE_ASC":
+        return getDateValue(a) - getDateValue(b);
+      case "PRIORITY_DESC":
+        return getPriorityValue(b) - getPriorityValue(a) || getDateValue(b) - getDateValue(a);
+      case "PRIORITY_ASC":
+        return getPriorityValue(a) - getPriorityValue(b) || getDateValue(b) - getDateValue(a);
+      case "DATE_DESC":
+      default:
+        return getDateValue(b) - getDateValue(a);
+    }
+  });
+
   const formatTechnician = (value) => {
     if (!value) return "Not Assigned";
     if (value.startsWith("{") && value.endsWith("}")) {
@@ -46,6 +85,13 @@ export default function AdminTickets() {
       }
     }
     return value;
+  };
+
+  const formatCreatedAt = (value) => {
+    if (!value) return "Unknown";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "Unknown";
+    return date.toLocaleString();
   };
 
   // 🔥 DELETE
@@ -88,10 +134,25 @@ export default function AdminTickets() {
         ))}
       </div>
 
+      <div style={{ marginBottom: 20 }}>
+        <label style={{ marginRight: 10, fontWeight: 600 }}>Sort by:</label>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          style={{ padding: "6px 10px", borderRadius: 8, border: "1px solid #ccc" }}
+        >
+          {SORT_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {loading && <p>Loading...</p>}
 
       {/* TICKETS */}
-      {filteredTickets.map((t) => (
+      {sortedTickets.map((t) => (
         <div
           key={t.id}
           onClick={() => navigate(`/admin/tickets/${t.id}`)}
@@ -118,6 +179,8 @@ export default function AdminTickets() {
           <p>
             📍 {t.resourceName || "-"}{t.resourceLocation ? ` (${t.resourceLocation})` : ""} | ⚡ {t.priority} | 🏷 {t.category}
           </p>
+
+          <p><strong>Created:</strong> {formatCreatedAt(t.createdAt)}</p>
 
           <p><strong>Status:</strong> {t.status}</p>
 

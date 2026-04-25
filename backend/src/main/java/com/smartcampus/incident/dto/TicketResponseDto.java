@@ -1,6 +1,7 @@
 package com.smartcampus.incident.dto;
 
 import com.smartcampus.incident.entity.*;
+import java.time.Instant;
 
 public class TicketResponseDto {
 
@@ -16,6 +17,7 @@ public class TicketResponseDto {
     private Long resourceId;
     private String resourceName;
     private String resourceLocation;
+    private Instant createdAt;
 
     // ✅ GETTERS
 
@@ -63,6 +65,10 @@ public class TicketResponseDto {
         return resourceLocation;
     }
 
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
     // ✅ SETTERS
 
     public void setId(Long id) {
@@ -107,5 +113,9 @@ public class TicketResponseDto {
 
     public void setResourceLocation(String resourceLocation) {
         this.resourceLocation = resourceLocation;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 }
