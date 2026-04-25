@@ -81,6 +81,12 @@ export default function AdminDashboard() {
         <p>Review, approve, or reject booking requests from users.</p>
         <Link className="text-link" to="/admin/bookings">Go to booking management</Link>
       </article>
+
+      <article className="card">
+        <h3>Platform analytics</h3>
+        <p>View cross-module analytics for users, bookings, tickets, and resources.</p>
+        <Link className="text-link" to="/admin/analytics">Open analytics center</Link>
+      </article>
       
       <article className="card">
         <h3>Resource availability heatmap</h3>

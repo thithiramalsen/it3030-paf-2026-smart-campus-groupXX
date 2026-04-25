@@ -11,6 +11,7 @@ import UserDashboard from '../pages/UserDashboard';
 import TechnicianDashboard from '../pages/TechnicianDashboard';
 import ManagerDashboard from '../pages/ManagerDashboard';
 import AdminDashboard from '../pages/AdminDashboard';
+import AdminAnalyticsPage from '../pages/AdminAnalyticsPage';
 import AdminUsersPage from '../pages/AdminUsersPage';
 import OAuthCallbackPage from '../pages/OAuthCallbackPage';
 
@@ -200,6 +201,17 @@ export default function AppRoutes() {
               <RoleGuard allowedRoles={['ADMIN']}>
                 <ShellLayout>
                   <AdminUsersPage />
+                </ShellLayout>
+              </RoleGuard>
+            }
+          />
+
+          <Route
+            path="/admin/analytics"
+            element={
+              <RoleGuard allowedRoles={['ADMIN']}>
+                <ShellLayout>
+                  <AdminAnalyticsPage />
                 </ShellLayout>
               </RoleGuard>
             }
