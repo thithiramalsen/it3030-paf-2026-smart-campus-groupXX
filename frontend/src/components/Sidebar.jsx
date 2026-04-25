@@ -58,6 +58,7 @@ export default function Sidebar() {
       case 'ADMIN':
         return [
           item('/admin', 'Dashboard', ShieldCheck),
+          item('/admin/analytics', 'Analytics', BarChart3),
           item('/admin/users', 'Manage Users', Users),
           item('/admin/bookings', 'Manage Bookings', CalendarClock),
           item('/admin/tickets', 'Manage Tickets', Ticket),
