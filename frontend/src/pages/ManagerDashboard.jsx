@@ -15,8 +15,17 @@ export default function ManagerDashboard() {
     try {
       const res = await getAllTickets();
       setTickets(res.data || []);
-    } catch {
-      setTicketsError('Failed to load tickets.');
+    } catch (err) {
+      const status = err?.response?.status;
+      if (status === 401) {
+        setTicketsError('Session expired. Please sign in again.');
+      } else if (status === 403) {
+        setTicketsError('You do not have permission to view ticket oversight.');
+      } else if (status && status >= 500) {
+        setTicketsError('Server error while loading tickets. Please try again.');
+      } else {
+        setTicketsError('Failed to load tickets. Check backend availability and try again.');
+      }
     } finally {
       setTicketsLoading(false);
     }
