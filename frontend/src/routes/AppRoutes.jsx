@@ -25,6 +25,7 @@ import NewTicket from '../features/tickets/NewTicket';
 import AdminTickets from '../features/tickets/AdminTickets';
 import AdminReplyTickets from '../features/tickets/AdminReplyTickets';
 import TicketDetails from '../features/tickets/TicketDetails';
+import AssignedTickets from '../features/tickets/AssignedTickets';
 
 import AddResource from '../pages/AddResource';
 import EditResource from '../pages/EditResource';
@@ -106,6 +107,16 @@ export default function AppRoutes() {
               <RoleGuard allowedRoles={['TECHNICIAN', 'ADMIN']}>
                 <ShellLayout>
                   <TechnicianDashboard />
+                </ShellLayout>
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="/technician/tickets"
+            element={
+              <RoleGuard allowedRoles={['TECHNICIAN']}>
+                <ShellLayout>
+                  <AssignedTickets />
                 </ShellLayout>
               </RoleGuard>
             }

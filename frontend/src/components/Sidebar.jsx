@@ -48,6 +48,7 @@ export default function Sidebar() {
       case 'TECHNICIAN':
         return [
           item('/technician/dashboard', 'Dashboard', Wrench),
+          item('/technician/tickets', 'Assigned Tickets', Ticket),
         ];
       case 'MANAGER':
         return [

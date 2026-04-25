@@ -61,6 +61,7 @@ public class TicketService {
         t.setResource(resource);
         t.setStatus(TicketStatus.OPEN);
         t.setCreatedByEmail(currentUser.getEmail());
+        t.setCreatedByName(displayName(currentUser));
 
         ticketRepository.save(t);
 
@@ -278,6 +279,21 @@ public class TicketService {
         dto.setCategory(t.getCategory());
         dto.setPriority(t.getPriority());
         dto.setCreatedAt(t.getCreatedAt());
+        dto.setCreatedByEmail(t.getCreatedByEmail());
+
+        if (t.getCreatedByName() != null && !t.getCreatedByName().isBlank()) {
+            dto.setCreatedByName(t.getCreatedByName().trim());
+        }
+
+        findTicketCreator(t).ifPresentOrElse(
+            user -> dto.setCreatedByName(displayName(user)),
+            () -> {
+                if (dto.getCreatedByName() == null || dto.getCreatedByName().isBlank()) {
+                    dto.setCreatedByName(t.getCreatedByEmail());
+                }
+            }
+        );
+
         if (t.getResource() != null) {
             dto.setResourceId(t.getResource().getId());
             dto.setResourceName(t.getResource().getName());

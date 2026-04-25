@@ -76,9 +76,9 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.getTicket(id));
     }
 
-    // ✅ UPDATE STATUS
+    // ✅ UPDATE STATUS (TECHNICIAN ONLY)
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN','TECHNICIAN')")
+    @PreAuthorize("hasRole('TECHNICIAN')")
     public ResponseEntity<TicketResponseDto> updateStatus(
             @PathVariable Long id,
             @Valid @RequestBody TicketUpdateDto dto) {
