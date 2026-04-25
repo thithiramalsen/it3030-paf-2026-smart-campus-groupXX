@@ -1,5 +1,10 @@
 package com.smartcampus.user.service;
 
+import com.smartcampus.auth.RefreshTokenRepository;
+import com.smartcampus.booking.repository.BookingRepository;
+import com.smartcampus.incident.repository.TicketRepository;
+import com.smartcampus.notification.NotificationRepository;
+import com.smartcampus.user.CurrentUserService;
 import com.smartcampus.user.User;
 import com.smartcampus.user.UserRepository;
 import com.smartcampus.user.dto.UpdateUserRoleRequest;
@@ -15,9 +20,24 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminUserService {
 
     private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
+    private final TicketRepository ticketRepository;
+    private final NotificationRepository notificationRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final CurrentUserService currentUserService;
 
-    public AdminUserService(UserRepository userRepository) {
+    public AdminUserService(UserRepository userRepository,
+                            BookingRepository bookingRepository,
+                            TicketRepository ticketRepository,
+                            NotificationRepository notificationRepository,
+                            RefreshTokenRepository refreshTokenRepository,
+                            CurrentUserService currentUserService) {
         this.userRepository = userRepository;
+        this.bookingRepository = bookingRepository;
+        this.ticketRepository = ticketRepository;
+        this.notificationRepository = notificationRepository;
+        this.refreshTokenRepository = refreshTokenRepository;
+        this.currentUserService = currentUserService;
     }
 
     @Transactional(readOnly = true)
@@ -46,9 +66,19 @@ public class AdminUserService {
 
     @Transactional
     public void deleteUser(UUID userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new IllegalArgumentException("User not found: " + userId);
-        }
-        userRepository.deleteById(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+
+        currentUserService.getCurrentUser().ifPresent(current -> {
+            if (current.getId().equals(userId)) {
+                throw new IllegalArgumentException("You cannot delete your own account");
+            }
+        });
+
+        refreshTokenRepository.deleteByUser(user);
+        notificationRepository.deleteByRecipient(user);
+        bookingRepository.deleteByUserId(userId);
+        ticketRepository.deleteByCreatedByEmailIgnoreCase(user.getEmail());
+        userRepository.delete(user);
     }
 }

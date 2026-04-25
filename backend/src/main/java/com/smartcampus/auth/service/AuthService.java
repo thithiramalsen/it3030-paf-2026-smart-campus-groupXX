@@ -5,6 +5,8 @@ import com.smartcampus.auth.RefreshToken;
 import com.smartcampus.auth.RefreshTokenService;
 import com.smartcampus.auth.dto.RefreshRequest;
 import com.smartcampus.auth.dto.TokenResponse;
+import com.smartcampus.notification.NotificationService;
+import com.smartcampus.notification.NotificationType;
 import com.smartcampus.user.AccountStatus;
 import com.smartcampus.user.CurrentUserService;
 import com.smartcampus.user.Role;
@@ -22,16 +24,19 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final CurrentUserService currentUserService;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
     private final String bootstrapAdminEmail;
 
     public AuthService(RefreshTokenService refreshTokenService,
                        JwtTokenProvider jwtTokenProvider,
                        CurrentUserService currentUserService,
+                       NotificationService notificationService,
                        UserRepository userRepository,
                        @Value("${app.bootstrap-admin-email:path2intern@gmail.com}") String bootstrapAdminEmail) {
         this.refreshTokenService = refreshTokenService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.currentUserService = currentUserService;
+        this.notificationService = notificationService;
         this.userRepository = userRepository;
         this.bootstrapAdminEmail = bootstrapAdminEmail == null ? "" : bootstrapAdminEmail.trim().toLowerCase();
     }
@@ -89,7 +94,27 @@ public class AuthService {
         user.setUserType(classifyUserType(email));
         user.setAccountStatus(determineInitialStatus(email));
         user.setProfileImageUrl(pictureUrl);
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+
+        if (saved.getAccountStatus() == AccountStatus.PENDING_APPROVAL) {
+            notifyAdminsAboutPendingApproval(saved);
+        }
+
+        return saved;
+    }
+
+    private void notifyAdminsAboutPendingApproval(User pendingUser) {
+        String message = "New user registration requires approval: "
+                + pendingUser.getName() + " (" + pendingUser.getEmail() + ")";
+
+        userRepository.findByRole(Role.ADMIN).forEach(admin ->
+                notificationService.notifyUser(
+                        admin.getId(),
+                        message,
+                        NotificationType.ACCOUNT_APPROVAL_REQUIRED,
+                        pendingUser.getId()
+                )
+        );
     }
 
     private Role determineInitialRole(String email) {
