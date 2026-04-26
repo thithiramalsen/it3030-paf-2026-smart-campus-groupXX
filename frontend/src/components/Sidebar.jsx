@@ -10,7 +10,6 @@ import {
   HardDrive,
   Home,
   LayoutDashboard,
-  MessageSquare,
   ShieldCheck,
   Ticket,
   UserRound,
@@ -34,36 +33,41 @@ export default function Sidebar() {
     item('/notifications', 'Notifications', Bell),
   ];
 
-  const roleSpecific = [];
-
-  if (user?.role === 'USER') {
-    roleSpecific.push(item('/dashboard', 'User Dashboard', LayoutDashboard));
-    roleSpecific.push(item('/bookings/my', 'My Bookings', CalendarClock));
-    roleSpecific.push(item('/bookings/new', 'New Booking', CalendarPlus));
-    roleSpecific.push(item('/bookings/calendar', 'Booking Calendar', CalendarDays));
-    roleSpecific.push(item('/bookings/heatmap', 'Availability Heatmap', BarChart3));
-    roleSpecific.push(item('/tickets/my', 'My Tickets', Ticket));
-    roleSpecific.push(item('/tickets/new', 'New Ticket', Ticket));
-  }
-
-  if (user?.role === 'TECHNICIAN' || user?.role === 'MANAGER' || user?.role === 'ADMIN') {
-    roleSpecific.push(item('/technician/dashboard', 'Technician Dashboard', Wrench));
-  }
-
-  if (user?.role === 'MANAGER' || user?.role === 'ADMIN') {
-    roleSpecific.push(item('/manager/dashboard', 'Manager Dashboard', Compass));
-    roleSpecific.push(item('/manager/resources', 'Manage Resources', HardDrive));
-  }
-
-  if (user?.role === 'ADMIN') {
-    roleSpecific.push(item('/admin', 'Admin Dashboard', ShieldCheck));
-    roleSpecific.push(item('/admin/users', 'Users Admin', Users));
-    roleSpecific.push(item('/admin/bookings', 'Booking Admin', CalendarClock));
-     roleSpecific.push(item('/bookings/heatmap', 'Availability Heatmap',BarChart3));
-    roleSpecific.push(item('/admin/tickets', 'Ticket Management', Ticket));
-    roleSpecific.push(item('/admin/tickets/reply', 'Reply Tickets', MessageSquare));
-
-  }
+  const roleSpecific = (() => {
+    switch (user?.role) {
+      case 'USER':
+        return [
+          // item('/dashboard', 'Dashboard', LayoutDashboard),
+          item('/bookings/my', 'My Bookings', CalendarClock),
+          item('/bookings/new', 'New Booking', CalendarPlus),
+          item('/bookings/calendar', 'Booking Calendar', CalendarDays),
+          item('/bookings/heatmap', 'Availability Heatmap', BarChart3),
+          item('/tickets/my', 'My Tickets', Ticket),
+          item('/tickets/new', 'New Ticket', Ticket),
+        ];
+      case 'TECHNICIAN':
+        return [
+          // item('/technician/dashboard', 'Dashboard', Wrench),
+          item('/technician/tickets', 'Assigned Tickets', Ticket),
+        ];
+      case 'MANAGER':
+        return [
+          // item('/manager/dashboard', 'Dashboard', Compass),
+          item('/manager/resources', 'Resource Administration', HardDrive),
+        ];
+      case 'ADMIN':
+        return [
+          item('/admin', 'Dashboard', ShieldCheck),
+          item('/admin/analytics', 'Analytics', BarChart3),
+          item('/admin/users', 'Manage Users', Users),
+          item('/admin/bookings', 'Manage Bookings', CalendarClock),
+          item('/admin/tickets', 'Manage Tickets', Ticket),
+          item('/manager/resources', 'Resource Administration', HardDrive),
+        ];
+      default:
+        return [];
+    }
+  })();
 
   const items = [...common, ...roleSpecific];
 
@@ -85,9 +89,9 @@ export default function Sidebar() {
       <nav className="sidebar-nav">
         {items.map((nav) => {
           const isActive =
-            location.pathname === nav.path ||
-            (nav.path === '/resources' && location.pathname.startsWith('/resources/')) ||
-            (nav.path === '/manager/resources' && location.pathname.startsWith('/manager/resources/'));
+            nav.path === '/'
+              ? location.pathname === '/'
+              : location.pathname === nav.path || location.pathname.startsWith(`${nav.path}/`);
 
           const Icon = nav.icon;
 

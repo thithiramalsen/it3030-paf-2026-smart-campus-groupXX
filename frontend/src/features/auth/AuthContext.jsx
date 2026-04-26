@@ -4,6 +4,16 @@ import { clearTokens } from '../../auth/tokenStore';
 
 const AuthContext = createContext(null);
 
+function normalizeUser(payload) {
+  if (!payload) return null;
+  return {
+    ...payload,
+    fullName: payload.fullName || payload.name || '',
+    profileImageUrl:
+      payload.profileImageUrl || payload.picture || payload.avatarUrl || payload.imageUrl || '',
+  };
+}
+
 export function useAuth() {
   return useContext(AuthContext);
 }
@@ -15,7 +25,7 @@ export function AuthProvider({ children }) {
   const refreshUser = async () => {
     try {
       const result = await authApi.getCurrentUser();
-      setUser(result.data || null);
+      setUser(normalizeUser(result.data));
     } catch {
       setUser(null);
     } finally {

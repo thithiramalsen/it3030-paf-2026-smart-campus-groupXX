@@ -1,10 +1,10 @@
-import apiClient from '../utils/apiClient';
+import httpClient from './httpClient';
 
 export const profileApi = {
   getMine() {
-    return apiClient.get('/api/profile/me');
+    return httpClient.get('/api/profile/me');
   },
   updateMine(payload) {
-    return apiClient.put('/api/profile/me', payload);
+    return httpClient.put('/api/profile/me', payload);
   },
 };

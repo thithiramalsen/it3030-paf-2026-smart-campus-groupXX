@@ -16,5 +16,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
     List<Ticket> findByCreatedByEmail(String createdByEmail);
 
+    long deleteByCreatedByEmailIgnoreCase(String createdByEmail);
+
     List<Ticket> findByTechnicianAssignedIgnoreCase(String technicianAssigned);
 }

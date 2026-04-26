@@ -55,7 +55,7 @@ export default function ResourceDetails() {
         setDeleting(true);
         try {
             await deleteResource(id);
-            navigate('/manager/dashboard', { state: { tab: 'resources' } });
+            navigate('/manager/resources');
         } catch (err) {
             alert('Failed to delete resource.');
             setDeleting(false);
@@ -95,7 +95,7 @@ export default function ResourceDetails() {
 
             {/* Back link */}
             <div
-                onClick={() => navigate('/manager/dashboard', { state: { tab: 'resources' } })}
+                onClick={() => navigate('/manager/resources')}
                 style={{
                     display: 'inline-flex', alignItems: 'center', gap: 6,
                     fontSize: 13, color: '#555', cursor: 'pointer', marginBottom: 16,

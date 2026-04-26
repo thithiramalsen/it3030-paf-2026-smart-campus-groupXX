@@ -26,19 +26,6 @@ function timeToPercent(timeStr) {
   return ((h + m / 60 - DAY_START) / DAY_HOURS) * 100;
 }
 
-const inputStyle = {
-  display: 'block', width: '100%', padding: '11px 14px',
-  marginTop: 6, borderRadius: 8, border: '1px solid #e5e7eb',
-  fontSize: 15, outline: 'none', boxSizing: 'border-box',
-  background: '#fff', color: '#111827',
-};
-
-const labelStyle = {
-  fontSize: 14, fontWeight: 600, color: '#374151',
-};
-
-
-
 export default function BookingForm({ onSuccess }) {
   const [resources, setResources] = useState([]);
   const [selectedResource, setSelectedResource] = useState(null);
@@ -159,196 +146,180 @@ export default function BookingForm({ onSuccess }) {
   };
 
   return (
-        <div style={{
-      maxWidth: 800,maxHeight: 1000, margin: '40px auto', padding: '40px',
-      background: '#ffffff', borderRadius: 20,
-      boxShadow: '0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)',
-      border: '1px solid #e5e7eb',
-    }}>
-
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <button type="button" onClick={() => navigate('/bookings/my')} style={{
-          padding: '6px 12px', background: 'transparent', border: '1px solid #e5e7eb',
-          borderRadius: 8, cursor: 'pointer', fontSize: 13, color: '#6b7280'
-        }}>← Back</button>
-        <button type="button" onClick={() => navigate('/bookings/heatmap')} style={{
-          padding: '6px 12px', background: 'transparent', border: '1px solid #e5e7eb',
-          borderRadius: 8, cursor: 'pointer', fontSize: 13, color: '#6b7280'
-        }}>📊 Heatmap</button>
-      </div>
-
-        <h2 style={{ margin: '0 0 4px', fontSize: 24, fontWeight: 700, color: '#111827' }}>New Booking</h2>
-        <p style={{ margin: '0 0 28px', fontSize: 15, color: '#6b7280' }}>Fill in the details to request a resource booking.</p>
-
-      <form onSubmit={handleSubmit}>
-
-        {/* Resource */}
-        <div style={{ marginBottom: 16 }}>
-          <label style={labelStyle}>Resource</label>
-          <select name="resourceId" value={form.resourceId} onChange={handleResourceChange} style={inputStyle}>
-            <option value="">Select a resource...</option>
-            {resources.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name} · {r.type} · {r.location} (Cap: {r.capacity})
-              </option>
-            ))}
-          </select>
+    <div className="booking-shell">
+      <section className="booking-card">
+        <div className="booking-head-row">
+          <button type="button" className="btn-outline" onClick={() => navigate('/bookings/my')}>
+            Back to My Bookings
+          </button>
+          <button type="button" className="btn-outline" onClick={() => navigate('/bookings/heatmap')}>
+            Availability Heatmap
+          </button>
         </div>
 
-        {/* Resource info */}
-        {selectedResource && (
-          <div style={{ padding: '10px 14px', marginBottom: 16, borderRadius: 8, background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#1e293b' }}>{selectedResource.name}</p>
-            <p style={{ margin: '2px 0 0', fontSize: 12, color: '#64748b' }}>
-              📍 {selectedResource.location} &nbsp;·&nbsp; 👥 Max {selectedResource.capacity} people &nbsp;·&nbsp; 🏷️ {selectedResource.type}
-            </p>
-            {selectedResource.description && (
-              <p style={{ margin: '4px 0 0', fontSize: 12, color: '#94a3b8' }}>{selectedResource.description}</p>
-            )}
-          </div>
-        )}
+        <div className="booking-title-block">
+          <p className="kicker">Booking Desk</p>
+          <h2>New Booking Request</h2>
+          <p className="muted">Choose a resource, pick a slot, and submit for admin approval.</p>
+        </div>
 
-        {/* Date + Duration row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-          <div>
-            <label style={labelStyle}>Date</label>
-            <input type="date" name="bookingDate" value={form.bookingDate}
-              onChange={handleChange} required min={new Date().toISOString().split('T')[0]}
-              style={inputStyle} />
+        <form onSubmit={handleSubmit} className="booking-form-grid">
+          <div className="booking-field booking-field-full">
+            <label htmlFor="resourceId">Resource</label>
+            <select id="resourceId" name="resourceId" value={form.resourceId} onChange={handleResourceChange}>
+              <option value="">Select a resource...</option>
+              {resources.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name} · {r.type} · {r.location} (Cap: {r.capacity})
+                </option>
+              ))}
+            </select>
           </div>
-          <div>
-            <label style={labelStyle}>Duration</label>
-            <select value={duration} onChange={(e) => setDuration(Number(e.target.value))} style={inputStyle}>
+
+          {selectedResource && (
+            <div className="booking-resource-chip booking-field-full">
+              <p className="booking-resource-name">{selectedResource.name}</p>
+              <p className="booking-resource-meta">
+                {selectedResource.location} · Max {selectedResource.capacity} people · {selectedResource.type}
+              </p>
+              {selectedResource.description && (
+                <p className="booking-resource-desc">{selectedResource.description}</p>
+              )}
+            </div>
+          )}
+
+          <div className="booking-field">
+            <label htmlFor="bookingDate">Date</label>
+            <input
+              id="bookingDate"
+              type="date"
+              name="bookingDate"
+              value={form.bookingDate}
+              onChange={handleChange}
+              required
+              min={new Date().toISOString().split('T')[0]}
+            />
+          </div>
+
+          <div className="booking-field">
+            <label htmlFor="duration">Duration</label>
+            <select id="duration" value={duration} onChange={(e) => setDuration(Number(e.target.value))}>
               {DURATION_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
           </div>
-        </div>
 
-        {/* Slot suggestions */}
-        {suggestions.length > 0 && (
-          <div style={{ marginBottom: 16, padding: 14, borderRadius: 8, background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-            <p style={{ margin: '0 0 10px', fontSize: 13, fontWeight: 600, color: '#374151' }}>
-              💡 Available slots
-              <span style={{ fontWeight: 400, color: '#9ca3af', marginLeft: 6 }}>— click to auto-fill</span>
-            </p>
-
-            {/* Timeline bar */}
-            <div style={{ position: 'relative', height: 28, background: '#e5e7eb', borderRadius: 6, marginBottom: 10, overflow: 'hidden' }}>
-              {[8,10,12,14,16,18,20].map((h) => (
-                <span key={h} style={{
-                  position: 'absolute', left: `${((h - DAY_START) / DAY_HOURS) * 100}%`,
-                  top: 2, fontSize: 8, color: '#9ca3af', transform: 'translateX(-50%)'
-                }}>{h}</span>
-              ))}
-              {suggestions.map((s, i) => {
-                const left = timeToPercent(s.suggestedStart);
-                const right = timeToPercent(s.suggestedEnd);
-                const busy = BUSY_CONFIG[s.busyLevel] || BUSY_CONFIG.QUIET;
-                return (
-                  <div key={i} onClick={() => applySuggestion(s)} style={{
-                    position: 'absolute', left: `${left}%`, width: `${right - left}%`,
-                    top: 12, height: 12, background: busy.color, borderRadius: 3,
-                    cursor: 'pointer', opacity: 0.8,
-                  }} title={s.message} />
-                );
-              })}
-            </div>
-
-            {/* Scrollable chips */}
-            <div style={{ maxHeight: 150, overflowY: suggestions.length > 3 ? 'auto' : 'visible' }}>
-              {suggestions.map((s, i) => {
-                const busy = BUSY_CONFIG[s.busyLevel] || BUSY_CONFIG.QUIET;
-                return (
-                  <div key={i} onClick={() => applySuggestion(s)} style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '7px 10px', marginBottom: 4, borderRadius: 6, cursor: 'pointer',
-                    border: '1px solid #e5e7eb', background: '#fff', fontSize: 13,
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#f0f9ff'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+          {suggestions.length > 0 && (
+            <div className="booking-suggestion-wrap booking-field-full">
+              <p className="booking-suggestion-title">Smart slot suggestions</p>
+              <div className="booking-timeline">
+                {[8, 10, 12, 14, 16, 18, 20].map((h) => (
+                  <span
+                    key={h}
+                    className="booking-timeline-tick"
+                    style={{ left: `${((h - DAY_START) / DAY_HOURS) * 100}%` }}
                   >
-                    <span style={{ color: '#374151' }}>{s.message}</span>
-                    <span style={{ fontSize: 11, color: busy.color, fontWeight: 600, marginLeft: 8 }}>
-                      {busy.emoji} {busy.label}
-                    </span>
-                  </div>
-                );
-              })}
+                    {h}
+                  </span>
+                ))}
+                {suggestions.map((s, i) => {
+                  const left = timeToPercent(s.suggestedStart);
+                  const right = timeToPercent(s.suggestedEnd);
+                  const busy = BUSY_CONFIG[s.busyLevel] || BUSY_CONFIG.QUIET;
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => applySuggestion(s)}
+                      className="booking-timeline-block"
+                      style={{ left: `${left}%`, width: `${right - left}%`, background: busy.color }}
+                      title={s.message}
+                    />
+                  );
+                })}
+              </div>
+
+              <div className="booking-suggestion-list">
+                {suggestions.map((s, i) => {
+                  const busy = BUSY_CONFIG[s.busyLevel] || BUSY_CONFIG.QUIET;
+                  return (
+                    <button
+                      type="button"
+                      key={i}
+                      className="booking-suggestion-item"
+                      onClick={() => applySuggestion(s)}
+                    >
+                      <span>{s.message}</span>
+                      <strong style={{ color: busy.color }}>{busy.emoji} {busy.label}</strong>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            {suggestions.length > 3 && (
-              <p style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center', margin: '6px 0 0' }}>scroll for more ↕</p>
-            )}
+          )}
+
+          {form.resourceId && form.bookingDate && suggestions.length === 0 && (
+            <div className="booking-notice warning booking-field-full">
+              No available slots for the selected date and duration. Try a different date or shorter duration.
+            </div>
+          )}
+
+          <div className="booking-field">
+            <label htmlFor="startTime">Start Time</label>
+            <input id="startTime" type="time" name="startTime" value={form.startTime} onChange={handleChange} required />
           </div>
-        )}
 
-        {/* No slots warning */}
-        {form.resourceId && form.bookingDate && suggestions.length === 0 && (
-          <div style={{ padding: '10px 14px', marginBottom: 16, borderRadius: 8, background: '#fffbeb', border: '1px solid #fde68a' }}>
-            <p style={{ margin: 0, fontSize: 13, color: '#92400e' }}>
-              ⚠️ No available slots for the selected date and duration. Try a different date or shorter duration.
-            </p>
+          <div className="booking-field">
+            <label htmlFor="endTime">End Time</label>
+            <input id="endTime" type="time" name="endTime" value={form.endTime} onChange={handleChange} required />
           </div>
-        )}
 
-        {/* Start + End time row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-          <div>
-            <label style={labelStyle}>Start Time</label>
-            <input type="time" name="startTime" value={form.startTime}
-              onChange={handleChange} required style={inputStyle} />
+          <div className="booking-field booking-field-full">
+            <label htmlFor="purpose">Purpose</label>
+            <textarea
+              id="purpose"
+              name="purpose"
+              value={form.purpose}
+              onChange={handleChange}
+              required
+              rows={3}
+              placeholder="e.g. Team meeting, lecture, workshop"
+            />
           </div>
-          <div>
-            <label style={labelStyle}>End Time</label>
-            <input type="time" name="endTime" value={form.endTime}
-              onChange={handleChange} required style={inputStyle} />
+
+          <div className="booking-field booking-field-full">
+            <label htmlFor="expectedAttendees">
+              Expected Attendees
+              {selectedResource && <span className="booking-cap-hint">(max {selectedResource.capacity})</span>}
+            </label>
+            <input
+              id="expectedAttendees"
+              type="number"
+              name="expectedAttendees"
+              value={form.expectedAttendees}
+              onChange={handleChange}
+              min={1}
+              max={selectedResource?.capacity || undefined}
+              placeholder={selectedResource ? `1 - ${selectedResource.capacity}` : 'Number of people'}
+            />
           </div>
-        </div>
 
-        {/* Purpose */}
-        <div style={{ marginBottom: 16 }}>
-          <label style={labelStyle}>Purpose</label>
-          <textarea name="purpose" value={form.purpose} onChange={handleChange}
-            required rows={3} placeholder="e.g. Team meeting, Lecture, Workshop..."
-            style={{ ...inputStyle, resize: 'vertical' }} />
-        </div>
+          {error && (
+            <div className="booking-notice error booking-field-full">{error}</div>
+          )}
 
-        {/* Attendees */}
-        <div style={{ marginBottom: 24 }}>
-          <label style={labelStyle}>
-            Expected Attendees
-            {selectedResource && <span style={{ fontWeight: 400, color: '#9ca3af', marginLeft: 6 }}>(max {selectedResource.capacity})</span>}
-          </label>
-          <input type="number" name="expectedAttendees" value={form.expectedAttendees}
-            onChange={handleChange} min={1} max={selectedResource?.capacity || undefined}
-            placeholder={selectedResource ? `1 – ${selectedResource.capacity}` : 'Number of people'}
-            style={inputStyle} />
-        </div>
+          {success && (
+            <div className="booking-notice success booking-field-full">
+              Booking submitted successfully. Waiting for admin approval.
+            </div>
+          )}
 
-        {/* Error */}
-        {error && (
-          <div style={{ padding: '10px 14px', marginBottom: 16, borderRadius: 8, background: '#fef2f2', border: '1px solid #fecaca' }}>
-            <p style={{ margin: 0, color: '#dc2626', fontSize: 13 }}>⚠️ {error}</p>
-          </div>
-        )}
-
-        {/* Success */}
-        {success && (
-          <div style={{ padding: '10px 14px', marginBottom: 16, borderRadius: 8, background: '#f0fdf4', border: '1px solid #bbf7d0' }}>
-            <p style={{ margin: 0, color: '#16a34a', fontSize: 13 }}>✅ Booking submitted! Waiting for admin approval.</p>
-          </div>
-        )}
-
-        <button type="submit" disabled={loading} style={{
-          width: '100%', padding: '11px', background: loading ? '#93c5fd' : '#2563eb',
-          color: '#fff', border: 'none', borderRadius: 8, fontSize: 15,
-          fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', letterSpacing: 0.2
-        }}>
-          {loading ? 'Submitting...' : 'Submit Booking Request'}
-        </button>
-      </form>
+          <button type="submit" className="btn-primary btn-wide booking-submit" disabled={loading}>
+            {loading ? 'Submitting...' : 'Submit Booking Request'}
+          </button>
+        </form>
+      </section>
     </div>
   );
 }

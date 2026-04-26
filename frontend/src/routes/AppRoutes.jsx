@@ -11,6 +11,7 @@ import UserDashboard from '../pages/UserDashboard';
 import TechnicianDashboard from '../pages/TechnicianDashboard';
 import ManagerDashboard from '../pages/ManagerDashboard';
 import AdminDashboard from '../pages/AdminDashboard';
+import AdminAnalyticsPage from '../pages/AdminAnalyticsPage';
 import AdminUsersPage from '../pages/AdminUsersPage';
 import OAuthCallbackPage from '../pages/OAuthCallbackPage';
 
@@ -25,6 +26,7 @@ import NewTicket from '../features/tickets/NewTicket';
 import AdminTickets from '../features/tickets/AdminTickets';
 import AdminReplyTickets from '../features/tickets/AdminReplyTickets';
 import TicketDetails from '../features/tickets/TicketDetails';
+import AssignedTickets from '../features/tickets/AssignedTickets';
 
 import AddResource from '../pages/AddResource';
 import EditResource from '../pages/EditResource';
@@ -103,9 +105,19 @@ export default function AppRoutes() {
           <Route
             path="/technician/dashboard"
             element={
-              <RoleGuard allowedRoles={['TECHNICIAN', 'MANAGER', 'ADMIN']}>
+              <RoleGuard allowedRoles={['TECHNICIAN', 'ADMIN']}>
                 <ShellLayout>
                   <TechnicianDashboard />
+                </ShellLayout>
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="/technician/tickets"
+            element={
+              <RoleGuard allowedRoles={['TECHNICIAN']}>
+                <ShellLayout>
+                  <AssignedTickets />
                 </ShellLayout>
               </RoleGuard>
             }
@@ -189,6 +201,17 @@ export default function AppRoutes() {
               <RoleGuard allowedRoles={['ADMIN']}>
                 <ShellLayout>
                   <AdminUsersPage />
+                </ShellLayout>
+              </RoleGuard>
+            }
+          />
+
+          <Route
+            path="/admin/analytics"
+            element={
+              <RoleGuard allowedRoles={['ADMIN']}>
+                <ShellLayout>
+                  <AdminAnalyticsPage />
                 </ShellLayout>
               </RoleGuard>
             }

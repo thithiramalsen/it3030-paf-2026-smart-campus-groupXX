@@ -3,11 +3,15 @@ package com.smartcampus.incident.controller;
 import com.smartcampus.incident.dto.*;
 import com.smartcampus.incident.entity.TicketStatus;
 import com.smartcampus.incident.service.TicketService;
+import com.smartcampus.user.CurrentUserService;
+import com.smartcampus.user.Role;
+import com.smartcampus.user.User;
 
 import jakarta.validation.Valid;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -17,9 +21,12 @@ import java.util.List;
 public class TicketController {
 
     private final TicketService ticketService;
+    private final CurrentUserService currentUserService;
 
-    public TicketController(TicketService ticketService) {
+    public TicketController(TicketService ticketService,
+                            CurrentUserService currentUserService) {
         this.ticketService = ticketService;
+        this.currentUserService = currentUserService;
     }
 
     // ✅ CREATE
@@ -32,11 +39,18 @@ public class TicketController {
                 .body(ticketService.createTicket(dto));
     }
 
-    // ✅ GET ALL (ADMIN)
+    // ✅ GET ALL (ADMIN, MANAGER)
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<TicketResponseDto>> getAllTickets(
             @RequestParam(required = false) TicketStatus status) {
+
+        User currentUser = currentUserService.getCurrentUser()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You must be logged in"));
+
+        if (currentUser.getRole() != Role.ADMIN && currentUser.getRole() != Role.MANAGER) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only managers and admins can view all tickets");
+        }
 
         return ResponseEntity.ok(ticketService.getAllTickets(status));
     }
@@ -62,9 +76,9 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.getTicket(id));
     }
 
-    // ✅ UPDATE STATUS
+    // ✅ UPDATE STATUS (TECHNICIAN ONLY)
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN','TECHNICIAN')")
+    @PreAuthorize("hasRole('TECHNICIAN')")
     public ResponseEntity<TicketResponseDto> updateStatus(
             @PathVariable Long id,
             @Valid @RequestBody TicketUpdateDto dto) {
@@ -92,7 +106,7 @@ public class TicketController {
 
     // 🔥 ✅ DELETE TICKET
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteTicket(@PathVariable Long id) {
 
         ticketService.deleteTicket(id);

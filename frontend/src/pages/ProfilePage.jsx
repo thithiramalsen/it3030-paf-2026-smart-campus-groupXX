@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
 import { profileApi } from '../api/profileApi';
+import { useAuth } from '../features/auth/AuthContext';
 
 export default function ProfilePage() {
+  const { refreshUser } = useAuth();
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState('');
   const [form, setForm] = useState({ fullName: '', profileImageUrl: '' });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [avatarBroken, setAvatarBroken] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -16,11 +19,15 @@ export default function ProfilePage() {
       .getMine()
       .then((res) => {
         if (!alive) return;
-        const p = res.data;
+        const p = {
+          ...(res.data || {}),
+          profileImageUrl:
+            res.data?.profileImageUrl || res.data?.picture || res.data?.avatarUrl || res.data?.imageUrl || '',
+        };
         setProfile(p);
         setForm({
           fullName: p.fullName || '',
-          profileImageUrl: p.profileImageUrl || '',
+          profileImageUrl: p.profileImageUrl,
         });
       })
       .catch(() => {
@@ -44,12 +51,26 @@ export default function ProfilePage() {
     setSaving(true);
     try {
       const res = await profileApi.updateMine(form);
-      setProfile(res.data);
+      setProfile({
+        ...(res.data || {}),
+        profileImageUrl:
+          res.data?.profileImageUrl || res.data?.picture || res.data?.avatarUrl || res.data?.imageUrl || '',
+      });
+      await refreshUser();
+      setAvatarBroken(false);
       setEditing(false);
     } finally {
       setSaving(false);
     }
   };
+
+  const displayName = profile?.fullName || profile?.name || 'User';
+  const initials = displayName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || '')
+    .join('') || 'U';
 
   if (loading) return <div className="page-block">Loading profile...</div>;
 
@@ -63,7 +84,17 @@ export default function ProfilePage() {
           <h3>{profile.fullName}</h3>
           <p>{profile.email}</p>
           <p className="muted">Role: {profile.role} | Status: {profile.accountStatus}</p>
-          {profile.profileImageUrl && <img className="avatar" src={profile.profileImageUrl} alt="profile" />}
+          {profile.profileImageUrl && !avatarBroken ? (
+            <img
+              className="avatar"
+              src={profile.profileImageUrl}
+              alt={displayName}
+              onError={() => setAvatarBroken(true)}
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div className="avatar avatar-fallback">{initials}</div>
+          )}
           <button className="btn-primary" onClick={() => setEditing(true)}>Edit profile</button>
         </section>
       )}

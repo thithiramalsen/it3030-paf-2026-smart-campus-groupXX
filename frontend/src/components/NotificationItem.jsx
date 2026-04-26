@@ -5,6 +5,8 @@ const typeColors = {
   BOOKING_REJECTED: '#f43f5e',
   TICKET_UPDATED: '#f59e0b',
   COMMENT_ADDED: '#a855f7',
+  ACCOUNT_APPROVAL_REQUIRED: '#f97316',
+  ROLE_CHANGED: '#0ea5a0',
   GENERAL: '#22c55e',
 };
 

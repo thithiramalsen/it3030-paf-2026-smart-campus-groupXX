@@ -1,6 +1,7 @@
 package com.smartcampus.incident.dto;
 
 import com.smartcampus.incident.entity.*;
+import java.time.Instant;
 
 public class TicketResponseDto {
 
@@ -13,9 +14,12 @@ public class TicketResponseDto {
     private TicketStatus status;
     private TicketCategory category;
     private TicketPriority priority;
+    private String createdByName;
+    private String createdByEmail;
     private Long resourceId;
     private String resourceName;
     private String resourceLocation;
+    private Instant createdAt;
 
     // ✅ GETTERS
 
@@ -51,6 +55,14 @@ public class TicketResponseDto {
         return priority;
     }
 
+    public String getCreatedByName() {
+        return createdByName;
+    }
+
+    public String getCreatedByEmail() {
+        return createdByEmail;
+    }
+
     public Long getResourceId() {
         return resourceId;
     }
@@ -61,6 +73,10 @@ public class TicketResponseDto {
 
     public String getResourceLocation() {
         return resourceLocation;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
     }
 
     // ✅ SETTERS
@@ -97,6 +113,14 @@ public class TicketResponseDto {
         this.priority = priority;
     }
 
+    public void setCreatedByName(String createdByName) {
+        this.createdByName = createdByName;
+    }
+
+    public void setCreatedByEmail(String createdByEmail) {
+        this.createdByEmail = createdByEmail;
+    }
+
     public void setResourceId(Long resourceId) {
         this.resourceId = resourceId;
     }
@@ -107,5 +131,9 @@ public class TicketResponseDto {
 
     public void setResourceLocation(String resourceLocation) {
         this.resourceLocation = resourceLocation;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 }
