@@ -9,11 +9,14 @@ import {
   updateTicketStatus
 } from "../../api/ticketsApi"; // ✅ use API
 import { useAuth } from "../auth/AuthContext";
+import { useAppFeedback } from "../../components/ui/AppFeedbackProvider";
+import { isTicketAttachmentImage, resolveTicketAttachmentUrl } from "../../utils/ticketAttachmentUrl";
 
 export default function TicketDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useAppFeedback();
 
   const [ticket, setTicket] = useState(null);
   const [comments, setComments] = useState([]);
@@ -90,7 +93,7 @@ export default function TicketDetails() {
       await loadData();
     } catch (err) {
       console.error(err);
-      alert("Failed to add comment");
+      toast("Failed to add comment", { type: 'error' });
     } finally {
       setSubmittingComment(false);
     }
@@ -98,7 +101,10 @@ export default function TicketDetails() {
 
   // ✅ ASSIGN TECHNICIAN (FIXED)
   const handleAssign = async () => {
-    if (!technician.trim()) return alert("Enter technician email");
+    if (!technician.trim()) {
+      toast("Enter technician email", { type: 'warning' });
+      return;
+    }
 
     try {
       setAssigningTech(true);
@@ -107,7 +113,7 @@ export default function TicketDetails() {
       await loadData();
     } catch (err) {
       console.error(err);
-      alert("Failed to assign technician");
+      toast("Failed to assign technician", { type: 'error' });
     } finally {
       setAssigningTech(false);
     }
@@ -126,7 +132,7 @@ export default function TicketDetails() {
       await loadData();
     } catch (err) {
       console.error(err);
-      alert("Failed to update ticket");
+      toast("Failed to update ticket", { type: 'error' });
     } finally {
       setUpdatingStatus(false);
     }
@@ -546,26 +552,38 @@ export default function TicketDetails() {
             {attachments.length === 0 && <p style={{ color: "#64748b", marginTop: 0 }}>No attachments uploaded.</p>}
 
             <div style={{ display: "grid", gap: 10 }}>
-              {attachments.map((a) => (
-                <a
-                  key={a.id}
-                  href={`http://localhost:8080/uploads/${a.fileName}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{
-                    border: "1px solid #e2e8f0",
-                    borderRadius: 10,
-                    overflow: "hidden",
-                    background: "#f8fafc",
-                  }}
-                >
-                  <img
-                    src={`http://localhost:8080/uploads/${a.fileName}`}
-                    alt={a.fileName}
-                    style={{ width: "100%", maxHeight: 220, objectFit: "cover", display: "block" }}
-                  />
-                </a>
-              ))}
+              {attachments.map((a) => {
+                const attachmentUrl = resolveTicketAttachmentUrl(a);
+                if (!attachmentUrl) return null;
+
+                return (
+                  <a
+                    key={a.id}
+                    href={attachmentUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      border: "1px solid #e2e8f0",
+                      borderRadius: 10,
+                      overflow: "hidden",
+                      background: "#f8fafc",
+                      textDecoration: "none",
+                    }}
+                  >
+                    {isTicketAttachmentImage(a) ? (
+                      <img
+                        src={attachmentUrl}
+                        alt={a.fileName}
+                        style={{ width: "100%", maxHeight: 220, objectFit: "cover", display: "block" }}
+                      />
+                    ) : (
+                      <div style={{ padding: "14px 12px", color: "#0f172a", fontWeight: 600 }}>
+                        {a.fileName || "Open attachment"}
+                      </div>
+                    )}
+                  </a>
+                );
+              })}
             </div>
           </article>
         </div>

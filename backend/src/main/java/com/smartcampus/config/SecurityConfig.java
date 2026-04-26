@@ -42,6 +42,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .cors(Customizer.withDefaults())
+
             .csrf(csrf -> csrf.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
@@ -50,7 +51,8 @@ public class SecurityConfig {
                     "/api/auth/refresh",
                     "/oauth2/**",
                     "/uploads/**",
-                    "/api/resources/*/qrcode"
+                    "/api/resources/*/qrcode",
+                    "/api/attachments/file/**"
                 ).permitAll()
                 .anyRequest().authenticated())
             .oauth2Login(oauth -> oauth

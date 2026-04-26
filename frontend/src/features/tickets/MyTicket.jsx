@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { deleteTicket, getMyTickets } from "../../api/ticketsApi"; // ✅ use API
+import { useAppFeedback } from "../../components/ui/AppFeedbackProvider";
 
 export default function MyTicket() {
   const [tickets, setTickets] = useState([]);
@@ -8,6 +9,7 @@ export default function MyTicket() {
   const [error, setError] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const navigate = useNavigate();
+  const { confirm, toast } = useAppFeedback();
 
   useEffect(() => {
     fetchTickets();
@@ -70,7 +72,13 @@ export default function MyTicket() {
   const handleDelete = async (ticketId, event) => {
     event.stopPropagation();
 
-    if (!window.confirm("Are you sure you want to delete this ticket?")) {
+    const approved = await confirm({
+      title: 'Delete ticket?',
+      message: 'Are you sure you want to delete this ticket?',
+      confirmText: 'Delete',
+      tone: 'danger',
+    });
+    if (!approved) {
       return;
     }
 
@@ -80,7 +88,7 @@ export default function MyTicket() {
       setTickets((prev) => prev.filter((ticket) => ticket.id !== ticketId));
     } catch (err) {
       console.error(err);
-      alert("Failed to delete ticket");
+      toast("Failed to delete ticket", { type: 'error' });
     } finally {
       setDeletingId(null);
     }
