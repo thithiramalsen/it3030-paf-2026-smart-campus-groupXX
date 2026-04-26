@@ -18,12 +18,23 @@ const formatType = (type) =>
     type?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
 const formatTime = (time) => {
-    if (!time) return '—';
+    if (!time) return '-';
     const [h, m] = time.split(':');
     const hour = parseInt(h);
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const h12  = hour % 12 || 12;
     return `${h12}:${m} ${ampm}`;
+};
+
+const detailRowStyle = {
+    display: 'flex', justifyContent: 'space-between',
+    alignItems: 'center', fontSize: 13,
+};
+const detailLabelStyle = {
+    color: '#888', fontWeight: 500, fontSize: 12,
+};
+const detailValueStyle = {
+    color: '#1a1a1a', fontWeight: 400,
 };
 
 export default function ResourceDetails() {
@@ -34,6 +45,7 @@ export default function ResourceDetails() {
     const [loading, setLoading]   = useState(true);
     const [error, setError]       = useState(null);
     const [deleting, setDeleting] = useState(false);
+    const [showQR, setShowQR]     = useState(false);
 
     useEffect(() => {
         const loadResource = async () => {
@@ -101,58 +113,43 @@ export default function ResourceDetails() {
                     fontSize: 13, color: '#555', cursor: 'pointer', marginBottom: 16,
                 }}
             >
-                ← Back to Resources
+                Back to Resources
             </div>
 
             {/* Page title */}
-            <h1 style={{ fontSize: 22, fontWeight: 500, margin: '0 0 20px', color: '#1a1a1a' }}>
-                Resource Details
-            </h1>
+            <div style={{ marginBottom: 20 }}>
+                <h1 style={{ fontSize: 20, fontWeight: 600, color: '#1a1a1a', margin: '0 0 4px' }}>
+                    {resource.name}
+                </h1>
+                <p style={{ fontSize: 13, color: '#888', margin: 0 }}>
+                    Resource Details
+                </p>
+            </div>
 
-            {/* Main content */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1fr', gap: 20 }}>
+            {/* Main grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 16, alignItems: 'start' }}>
 
-                {/* Left — Image */}
-                <div>
-                    {resource.imageUrl ? (
-                        <img
-                            src={resource.imageUrl}
-                            alt={resource.name}
-                            style={{
-                                width: '100%', height: 220,
-                                objectFit: 'cover', borderRadius: 12,
-                                border: '0.5px solid #e0e0e0',
-                            }}
-                            onError={e => e.target.style.display = 'none'}
-                        />
-                    ) : (
-                        <div style={{
-                            width: '100%', height: 220, borderRadius: 12,
-                            background: '#f5f5f5', border: '0.5px solid #e0e0e0',
-                            display: 'flex', alignItems: 'center',
-                            justifyContent: 'center', color: '#aaa', fontSize: 13,
-                        }}>
-                            No image
-                        </div>
-                    )}
-                </div>
-
-                {/* Centre — Resource Info */}
+                {/* Left - Details */}
                 <div style={{
                     background: '#fff', border: '0.5px solid #e0e0e0',
                     borderRadius: 12, padding: '20px',
                 }}>
-                    {/* Name + status badge */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-                        <h2 style={{ fontSize: 18, fontWeight: 500, margin: 0, color: '#1a1a1a' }}>
-                            {resource.name}
-                        </h2>
+                    {/* Header row */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                        <span style={{
+                            ...typeBadgeStyle[resource.type],
+                            fontSize: 11, fontWeight: 500,
+                            padding: '3px 10px', borderRadius: 999,
+                        }}>
+                            {formatType(resource.type)}
+                        </span>
                         <span style={{
                             ...statusBadgeStyle[resource.status],
                             fontSize: 11, fontWeight: 500,
                             padding: '3px 10px', borderRadius: 999,
+                            display: 'flex', alignItems: 'center', gap: 4,
                         }}>
-                            {resource.status === 'ACTIVE' ? '● Active' : '● Out of Service'}
+                            <span>{resource.status === 'ACTIVE' ? 'Active' : 'Out of Service'}</span>
                         </span>
                     </div>
 
@@ -195,9 +192,21 @@ export default function ResourceDetails() {
                             </p>
                         </div>
                     )}
+
+                    {/* Resource image */}
+                    {resource.imageUrl && (
+                        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '0.5px solid #f0f0f0' }}>
+                            <div style={{ fontSize: 12, color: '#888', marginBottom: 8, fontWeight: 500 }}>Image</div>
+                            <img
+                                src={resource.imageUrl}
+                                alt={resource.name}
+                                style={{ width: '100%', borderRadius: 8, objectFit: 'cover', maxHeight: 200 }}
+                            />
+                        </div>
+                    )}
                 </div>
 
-                {/* Right — Quick Actions */}
+                {/* Right - Quick Actions */}
                 <div style={{
                     background: '#fff', border: '0.5px solid #e0e0e0',
                     borderRadius: 12, padding: '20px',
@@ -207,6 +216,20 @@ export default function ResourceDetails() {
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+                        {/* QR Code */}
+                        <button
+                            onClick={() => setShowQR(true)}
+                            style={{
+                                width: '100%', padding: '10px 14px',
+                                fontSize: 13, borderRadius: 8, cursor: 'pointer',
+                                border: '0.5px solid #bae6fd', background: '#f0f9ff',
+                                color: '#0369a1', textAlign: 'left', fontWeight: 500,
+                                display: 'flex', alignItems: 'center', gap: 8,
+                            }}
+                        >
+                            Generate QR Code
+                        </button>
 
                         {/* Edit */}
                         <button
@@ -219,7 +242,7 @@ export default function ResourceDetails() {
                                 display: 'flex', alignItems: 'center', gap: 8,
                             }}
                         >
-                            ✏️ Edit Resource
+                            Edit Resource
                         </button>
 
                         {/* Mark Out of Service / Mark Active */}
@@ -233,9 +256,7 @@ export default function ResourceDetails() {
                                 display: 'flex', alignItems: 'center', gap: 8,
                             }}
                         >
-                            {resource.status === 'ACTIVE'
-                                ? '⚠️ Mark Out of Service'
-                                : '✅ Mark as Active'}
+                            {resource.status === 'ACTIVE' ? 'Mark Out of Service' : 'Mark as Active'}
                         </button>
 
                         {/* Delete */}
@@ -244,29 +265,76 @@ export default function ResourceDetails() {
                             disabled={deleting}
                             style={{
                                 width: '100%', padding: '10px 14px',
-                                fontSize: 13, borderRadius: 8, cursor: deleting ? 'not-allowed' : 'pointer',
+                                fontSize: 13, borderRadius: 8,
+                                cursor: deleting ? 'not-allowed' : 'pointer',
                                 border: '0.5px solid #f09595', background: '#fcebeb',
                                 color: '#a32d2d', textAlign: 'left', fontWeight: 500,
                                 display: 'flex', alignItems: 'center', gap: 8,
                                 opacity: deleting ? 0.6 : 1,
                             }}
                         >
-                            🗑 {deleting ? 'Deleting...' : 'Delete Resource'}
+                            {deleting ? 'Deleting...' : 'Delete Resource'}
                         </button>
                     </div>
                 </div>
             </div>
+
+            {/* QR Code Modal */}
+            {showQR && (
+                <div
+                    style={{
+                        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                        background: 'rgba(0,0,0,0.5)', zIndex: 1000,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}
+                    onClick={() => setShowQR(false)}
+                >
+                    <div
+                        style={{
+                            background: '#fff', borderRadius: 16, padding: 32,
+                            textAlign: 'center', maxWidth: 360, width: '90%',
+                            boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h3 style={{ margin: '0 0 4px', fontSize: 18, color: '#111827' }}>
+                            {resource.name}
+                        </h3>
+                        <p style={{ margin: '0 0 20px', fontSize: 13, color: '#6b7280' }}>
+                            Scan to view resource details
+                        </p>
+                        <img
+                            src={`http://localhost:8080/api/resources/${id}/qrcode`}
+                            alt="QR Code"
+                            style={{ width: 200, height: 200, borderRadius: 8 }}
+                        />
+                        <p style={{ margin: '16px 0 0', fontSize: 12, color: '#9ca3af' }}>
+                            {resource.location} - Capacity: {resource.capacity}
+                        </p>
+                        <div style={{ display: 'flex', gap: 8, marginTop: 16, justifyContent: 'center' }}>
+                            
+                                href={`http://localhost:8080/api/resources/${id}/qrcode`}
+                                download={`${resource.name}-qr.png`}
+                                style={{
+                                    padding: '8px 16px', background: '#2563eb', color: '#fff',
+                                    borderRadius: 8, fontSize: 13, textDecoration: 'none', fontWeight: 600,
+                                }}
+                            >
+                                Download
+                            </a>
+                            <button
+                                onClick={() => setShowQR(false)}
+                                style={{
+                                    padding: '8px 16px', background: '#f3f4f6', color: '#374151',
+                                    border: 'none', borderRadius: 8, fontSize: 13, cursor: 'pointer',
+                                }}
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
-
-const detailRowStyle = {
-    display: 'flex', justifyContent: 'space-between',
-    alignItems: 'center', fontSize: 13,
-};
-const detailLabelStyle = {
-    color: '#888', fontWeight: 500, fontSize: 12,
-};
-const detailValueStyle = {
-    color: '#1a1a1a', fontWeight: 400,
-};
