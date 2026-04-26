@@ -13,6 +13,8 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
 
+//REFRESH TOKEN SYSTEM
+
 @Entity
 @Table(name = "refresh_tokens")
 public class RefreshToken {
