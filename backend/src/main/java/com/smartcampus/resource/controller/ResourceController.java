@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import com.smartcampus.resource.service.QRCodeService;
+import org.springframework.http.MediaType;
 
 import java.util.List;
 
@@ -19,11 +21,12 @@ import java.util.List;
 public class ResourceController {
 
     private final ResourceService resourceService;
+    private final QRCodeService qrCodeService;
 
-    public ResourceController(ResourceService resourceService) {
+    public ResourceController(ResourceService resourceService, QRCodeService qrCodeService) {
         this.resourceService = resourceService;
+        this.qrCodeService = qrCodeService;
     }
-
     // GET all resources — all authenticated users
     @GetMapping
     public ResponseEntity<List<ResourceResponseDTO>> getAllResources() {
@@ -73,5 +76,21 @@ public class ResourceController {
     public ResponseEntity<Void> deleteResource(@PathVariable Long id) {
         resourceService.deleteResource(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // GET /api/resources/{id}/qrcode
+    // Returns QR code image for a resource
+    @GetMapping(value = "/{id}/qrcode", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> getQRCode(@PathVariable Long id) {
+        try {
+            // Verify resource exists
+            resourceService.getResourceById(id);
+            byte[] qrCode = qrCodeService.generateQRCode(id);
+            return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .body(qrCode);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }
