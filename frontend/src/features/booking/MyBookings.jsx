@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { bookingApi } from '../../api/bookingApi';
+import { useAppFeedback } from '../../components/ui/AppFeedbackProvider';
 
 const STATUS_CONFIG = {
   PENDING:   { color: '#d97706', bg: '#fffbeb', border: '#fde68a', label: 'Pending' },
@@ -15,6 +16,7 @@ export default function MyBookings() {
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState('ALL');
   const navigate = useNavigate();
+  const { prompt, toast } = useAppFeedback();
 
   const loadBookings = async () => {
     try {
@@ -30,12 +32,18 @@ export default function MyBookings() {
   useEffect(() => { loadBookings(); }, []);
 
   const handleCancel = async (id) => {
-    const reason = prompt('Reason for cancellation (optional):');
+    const reason = await prompt({
+      title: 'Cancel booking',
+      message: 'Reason for cancellation is optional.',
+      placeholder: 'Optional reason',
+      confirmText: 'Cancel booking',
+      cancelText: 'Keep booking',
+    });
     try {
       await bookingApi.cancelBooking(id, reason);
       loadBookings();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to cancel booking.');
+      toast(err.response?.data?.message || 'Failed to cancel booking.', { type: 'error' });
     }
   };
 

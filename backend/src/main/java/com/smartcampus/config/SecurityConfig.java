@@ -42,16 +42,24 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .cors(Customizer.withDefaults())
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/actuator/**", "/api/auth/refresh", "/oauth2/**", "/uploads/**").permitAll()
-                        .anyRequest().authenticated())
-                .oauth2Login(oauth -> oauth
-                        .userInfoEndpoint(config -> config.userService(customOAuth2UserService))
-                        .successHandler(successHandler))
-                .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint))
-                .httpBasic(Customizer.withDefaults());
+
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(
+                    "/actuator/**",
+                    "/api/auth/refresh",
+                    "/oauth2/**",
+                    "/uploads/**",
+                    "/api/resources/*/qrcode",
+                    "/api/attachments/file/**"
+                ).permitAll()
+                .anyRequest().authenticated())
+            .oauth2Login(oauth -> oauth
+                .userInfoEndpoint(config -> config.userService(customOAuth2UserService))
+                .successHandler(successHandler))
+            .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint))
+            .httpBasic(Customizer.withDefaults());
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

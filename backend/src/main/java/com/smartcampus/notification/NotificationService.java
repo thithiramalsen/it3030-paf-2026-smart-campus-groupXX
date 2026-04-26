@@ -102,6 +102,7 @@ public class NotificationService {
             case TICKET_UPDATED -> "Ticket Updated";
             case COMMENT_ADDED -> "New Comment";
             case ACCOUNT_APPROVAL_REQUIRED -> "Account Approval Required";
+            case ROLE_CHANGED -> "Role Updated";
         };
     }
 

@@ -43,6 +43,8 @@ export function getNotificationTarget(notification, role) {
       return ticketTarget(notification, role);
     case 'ACCOUNT_APPROVAL_REQUIRED':
       return isAdmin(role) ? '/admin/users' : '/notifications';
+    case 'ROLE_CHANGED':
+      return '/profile';
     default:
       return '/notifications';
   }

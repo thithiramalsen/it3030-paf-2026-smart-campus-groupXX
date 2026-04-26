@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { deleteResource } from '../api/resourceApi';
 import { useState } from 'react'; // ✅ added
+import { useAppFeedback } from './ui/AppFeedbackProvider';
 
 const typeBadgeStyle = {
     LECTURE_HALL:  { background: '#eeedfe', color: '#534ab7' },
@@ -28,6 +29,7 @@ const formatTime = (time) => {
 
 export default function ResourceTable({ resources, onRefresh }) {
     const navigate = useNavigate();
+    const { confirm, toast } = useAppFeedback();
 
     // ✅ Pagination state
     const [currentPage, setCurrentPage] = useState(1);
@@ -41,12 +43,19 @@ export default function ResourceTable({ resources, onRefresh }) {
     const totalPages = Math.ceil(resources.length / itemsPerPage);
 
     const handleDelete = async (id, name) => {
-        if (!window.confirm(`Are you sure you want to delete "${name}"?`)) return;
+        const approved = await confirm({
+            title: 'Delete resource?',
+            message: `Are you sure you want to delete "${name}"?`,
+            confirmText: 'Delete',
+            tone: 'danger',
+        });
+        if (!approved) return;
         try {
             await deleteResource(id);
             onRefresh();
+            toast('Resource deleted.', { type: 'success' });
         } catch (err) {
-            alert('Failed to delete resource.');
+            toast('Failed to delete resource.', { type: 'error' });
         }
     };
 
