@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getResourceById, deleteResource } from '../api/resourceApi';
+import { useAppFeedback } from '../components/ui/AppFeedbackProvider';
 
 const typeBadgeStyle = {
     LECTURE_HALL: { background: '#eeedfe', color: '#534ab7' },
@@ -29,6 +30,7 @@ const formatTime = (time) => {
 export default function ResourceDetails() {
     const navigate = useNavigate();
     const { id }   = useParams();
+    const { confirm, toast } = useAppFeedback();
 
     const [resource, setResource] = useState(null);
     const [loading, setLoading]   = useState(true);
@@ -51,13 +53,20 @@ export default function ResourceDetails() {
     }, [id]);
 
     const handleDelete = async () => {
-        if (!window.confirm(`Are you sure you want to delete "${resource.name}"? This cannot be undone.`)) return;
+        const approved = await confirm({
+            title: 'Delete resource?',
+            message: `Are you sure you want to delete "${resource.name}"? This cannot be undone.`,
+            confirmText: 'Delete',
+            tone: 'danger',
+        });
+        if (!approved) return;
         setDeleting(true);
         try {
             await deleteResource(id);
+            toast('Resource deleted.', { type: 'success' });
             navigate('/manager/resources');
         } catch (err) {
-            alert('Failed to delete resource.');
+            toast('Failed to delete resource.', { type: 'error' });
             setDeleting(false);
         }
     };

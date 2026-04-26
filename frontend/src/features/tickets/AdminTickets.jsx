@@ -4,6 +4,7 @@ import {
   getAllTickets,
   deleteTicket,
 } from "../../api/ticketsApi";
+import { useAppFeedback } from "../../components/ui/AppFeedbackProvider";
 
 const STATUS_OPTIONS = ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED", "ALL"];
 const SORT_OPTIONS = [
@@ -27,6 +28,7 @@ export default function AdminTickets() {
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
+  const { confirm, toast } = useAppFeedback();
 
   const loadTickets = async () => {
     setLoading(true);
@@ -152,14 +154,20 @@ export default function AdminTickets() {
   const handleDelete = async (id, e) => {
     e.stopPropagation();
 
-    if (!window.confirm("Are you sure you want to delete this ticket?")) return;
+    const approved = await confirm({
+      title: 'Delete ticket?',
+      message: 'Are you sure you want to delete this ticket?',
+      confirmText: 'Delete',
+      tone: 'danger',
+    });
+    if (!approved) return;
 
     try {
       await deleteTicket(id);
       await loadTickets();
     } catch (err) {
       console.error(err);
-      alert("Delete failed");
+      toast("Delete failed", { type: 'error' });
     }
   };
 

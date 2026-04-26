@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { bookingApi } from '../../api/bookingApi';
+import { useAppFeedback } from '../../components/ui/AppFeedbackProvider';
 
 const STATUS_CONFIG = {
   PENDING:   { color: '#d97706', bg: '#fffbeb', border: '#fde68a', label: 'Pending' },
@@ -15,6 +16,7 @@ export default function AdminBookings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { prompt, toast } = useAppFeedback();
 
   const loadBookings = async (status) => {
     setLoading(true);
@@ -31,23 +33,37 @@ export default function AdminBookings() {
   useEffect(() => { loadBookings(filter); }, [filter]);
 
   const handleApprove = async (id) => {
-    const note = prompt('Approval note (optional):');
+    const note = await prompt({
+      title: 'Approve booking',
+      message: 'Add an optional approval note.',
+      placeholder: 'Optional note',
+      confirmText: 'Approve',
+      cancelText: 'Cancel',
+    });
     try {
       await bookingApi.approveBooking(id, note);
       loadBookings(filter);
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to approve.');
+      toast(err.response?.data?.message || 'Failed to approve.', { type: 'error' });
     }
   };
 
   const handleReject = async (id) => {
-    const note = prompt('Reason for rejection (required):');
-    if (!note) return alert('Please provide a rejection reason.');
+    const note = await prompt({
+      title: 'Reject booking',
+      message: 'Please provide a rejection reason.',
+      placeholder: 'Required reason',
+      confirmText: 'Reject',
+      cancelText: 'Cancel',
+      required: true,
+      tone: 'danger',
+    });
+    if (!note) return;
     try {
       await bookingApi.rejectBooking(id, note);
       loadBookings(filter);
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to reject.');
+      toast(err.response?.data?.message || 'Failed to reject.', { type: 'error' });
     }
   };
 

@@ -9,11 +9,13 @@ import {
 } from "../../api/ticketsApi";
 import { adminApi } from "../../api/adminApi";
 import { useAuth } from "../auth/AuthContext";
+import { useAppFeedback } from "../../components/ui/AppFeedbackProvider";
 
 export default function AdminReplyTickets() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useAppFeedback();
 
   const [ticket, setTicket] = useState(null);
   const [comments, setComments] = useState([]);
@@ -52,7 +54,7 @@ export default function AdminReplyTickets() {
 
     } catch (err) {
       console.error(err);
-      alert("Failed to load ticket");
+      toast("Failed to load ticket", { type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -75,7 +77,10 @@ export default function AdminReplyTickets() {
 
   // ✅ ADD COMMENT
   const handleComment = async () => {
-    if (!comment.trim()) return alert("Enter a comment");
+    if (!comment.trim()) {
+      toast("Enter a comment", { type: 'warning' });
+      return;
+    }
 
     try {
       setSubmittingComment(true);
@@ -84,7 +89,7 @@ export default function AdminReplyTickets() {
       await loadData();
     } catch (err) {
       console.error(err);
-      alert("Failed to add comment");
+      toast("Failed to add comment", { type: 'error' });
     } finally {
       setSubmittingComment(false);
     }
@@ -92,16 +97,19 @@ export default function AdminReplyTickets() {
 
   // ✅ ASSIGN TECHNICIAN
   const handleAssign = async () => {
-    if (!selectedTechnician) return alert("Select technician");
+    if (!selectedTechnician) {
+      toast("Select technician", { type: 'warning' });
+      return;
+    }
 
     try {
       setAssigningTech(true);
       await assignTechnician(id, normalizeTechnicianInput(selectedTechnician));
-      alert("Technician assigned");
+      toast("Technician assigned", { type: 'success' });
       await loadData();
     } catch (err) {
       console.error(err);
-      alert("Assign failed");
+      toast("Assign failed", { type: 'error' });
     } finally {
       setAssigningTech(false);
     }

@@ -9,11 +9,13 @@ import {
   updateTicketStatus
 } from "../../api/ticketsApi"; // ✅ use API
 import { useAuth } from "../auth/AuthContext";
+import { useAppFeedback } from "../../components/ui/AppFeedbackProvider";
 
 export default function TicketDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { toast } = useAppFeedback();
 
   const [ticket, setTicket] = useState(null);
   const [comments, setComments] = useState([]);
@@ -90,7 +92,7 @@ export default function TicketDetails() {
       await loadData();
     } catch (err) {
       console.error(err);
-      alert("Failed to add comment");
+      toast("Failed to add comment", { type: 'error' });
     } finally {
       setSubmittingComment(false);
     }
@@ -98,7 +100,10 @@ export default function TicketDetails() {
 
   // ✅ ASSIGN TECHNICIAN (FIXED)
   const handleAssign = async () => {
-    if (!technician.trim()) return alert("Enter technician email");
+    if (!technician.trim()) {
+      toast("Enter technician email", { type: 'warning' });
+      return;
+    }
 
     try {
       setAssigningTech(true);
@@ -107,7 +112,7 @@ export default function TicketDetails() {
       await loadData();
     } catch (err) {
       console.error(err);
-      alert("Failed to assign technician");
+      toast("Failed to assign technician", { type: 'error' });
     } finally {
       setAssigningTech(false);
     }
@@ -126,7 +131,7 @@ export default function TicketDetails() {
       await loadData();
     } catch (err) {
       console.error(err);
-      alert("Failed to update ticket");
+      toast("Failed to update ticket", { type: 'error' });
     } finally {
       setUpdatingStatus(false);
     }
