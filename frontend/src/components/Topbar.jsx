@@ -10,12 +10,24 @@ export default function Topbar() {
   const { user, logout } = useAuth();
   const [unread, setUnread] = useState(0);
   const [trayOpen, setTrayOpen] = useState(false);
+  const [avatarBroken, setAvatarBroken] = useState(false);
   const dateLabel = new Intl.DateTimeFormat(undefined, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
     year: 'numeric',
   }).format(new Date());
+  const displayName = user?.fullName || user?.name || 'Smart Campus';
+  const initials = displayName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || '')
+    .join('') || 'SC';
+
+  useEffect(() => {
+    setAvatarBroken(false);
+  }, [user?.profileImageUrl]);
 
   useEffect(() => {
     let alive = true;
@@ -52,13 +64,30 @@ export default function Topbar() {
 
   return (
     <header className="topbar">
-      <div className="topbar-meta">
-        <h2>{user?.fullName || user?.name || 'Smart Campus'}</h2>
-        <p className="topbar-date">
-          <CalendarDays size={14} />
-          {dateLabel}
-        </p>
+      <div className="topbar-identity">
+        <div className="topbar-avatar-wrap" aria-hidden="true">
+          {user?.profileImageUrl && !avatarBroken ? (
+            <img
+              src={user.profileImageUrl}
+              alt={displayName}
+              className="topbar-avatar"
+              onError={() => setAvatarBroken(true)}
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div className="topbar-avatar-fallback">{initials}</div>
+          )}
+        </div>
+
+        <div className="topbar-meta">
+          <h2>{displayName}</h2>
+          <p className="topbar-date">
+            <CalendarDays size={14} />
+            {dateLabel}
+          </p>
+        </div>
       </div>
+
       <div className="topbar-actions">
         <button className="notif-btn" onClick={() => setTrayOpen((v) => !v)}>
           <Bell size={16} />

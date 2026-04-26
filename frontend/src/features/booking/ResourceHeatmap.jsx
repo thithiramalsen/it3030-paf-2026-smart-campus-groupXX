@@ -25,7 +25,34 @@ export default function ResourceHeatmap() {
       .catch(() => setResources([]));
   }, []);
 
-  const handleResourceChange = (e) => {
+  // Auto-generate when resource or mode or date changes
+  useEffect(() => {
+    if (!selectedResource) return;
+
+    const autoGenerate = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        if (mode === 'daily') {
+          const res = await bookingApi.getDailySchedule(selectedResource.id, selectedDate);
+          setDailySchedule(res.data);
+          setMatrix(null);
+        } else {
+          const res = await bookingApi.getScheduleMatrix(selectedResource.id, 14);
+          setMatrix(res.data);
+          setDailySchedule(null);
+        }
+      } catch {
+        setError('Failed to generate schedule.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    autoGenerate();
+  }, [selectedResource, mode, selectedDate]);
+
+ const handleResourceChange = (e) => {
     const id = e.target.value;
     const resource = resources.find((r) => String(r.id) === id);
     setSelectedResource(resource || null);
@@ -121,14 +148,12 @@ export default function ResourceHeatmap() {
         </p>
       )}
 
-      <button onClick={generate} disabled={loading || !selectedResource} style={{
-        width: '100%', padding: '10px', background: '#2563eb', color: '#fff',
-        border: 'none', borderRadius: 8, cursor: 'pointer', marginBottom: 20,
-        opacity: !selectedResource ? 0.5 : 1
-      }}>
-        {loading ? 'Loading...' : mode === 'daily' ? '📅 Show Daily Schedule' : '📊 Show 14-Day Table'}
-      </button>
-
+     {loading && (
+        <p style={{ textAlign: 'center', color: '#6b7280', fontSize: 13, marginBottom: 16 }}>
+          Loading schedule...
+        </p>
+      )}
+      
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
       {/* Daily schedule */}
